@@ -10,5 +10,5 @@ namespace imaging
 {
 	ImgData load(const std::string& in_path);
 	bool store(const std::string& in_path, ImgData in_data);
-	ImgData binarize(const ImgData& in_image, std::vector<PixelValue> in_resultColors = {cv::Vec3b(0, 0, 255), cv::Vec3b()});
+	ImgData binarize(const ImgData& in_image, std::vector<PixelValue> in_resultColors);
 }

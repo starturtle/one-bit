@@ -9,7 +9,14 @@ namespace imaging
 
 	ImgData load(const std::string& in_path)
 	{
-		return cv::imread(in_path, cv::IMREAD_COLOR);
+		FILE* file = fopen(in_path.c_str(), "r");
+		if (nullptr != file)
+		{
+			fclose(file);
+			return cv::imread(in_path, cv::ImreadModes::IMREAD_COLOR);
+		}
+		std::cout << "Could not open file [" << in_path << "], doesn't exist or not readable!" << std::endl;
+		return ImgData();
 	}
 	bool store(const std::string& out_path, ImgData in_data)
 	{
@@ -21,13 +28,15 @@ namespace imaging
 
 	ImgData binarize(const ImgData& in_image, std::vector<PixelValue> in_resultColors)
 	{
-		ImgData hsvFile;
-		cvtColor(in_image, hsvFile, cv::COLOR_BGR2HSV);
+		ImgData hsvFile(in_image.cols, in_image.rows, in_image.type());
+		in_image.convertTo(hsvFile, cv::COLOR_BGR2HSV);
 		CV_Assert(hsvFile.channels() == 3);
+		ImgData outputFile = in_image.clone();
 		for (int i = 0; i < hsvFile.rows; ++i) {
 			for (int j = 0; j < hsvFile.cols; ++j) {
 				PixelValue outValue = in_resultColors[0];
-				PixelValue content = hsvFile.at<cv::Vec3b>(j, i);
+				PixelValue& content = hsvFile.at<cv::Vec3b>(i, j);
+				PixelValue& output = outputFile.at<cv::Vec3b>(i, j);
 				for (auto color : in_resultColors)
 				{
 					if (colorDistance(color, content) < colorDistance(outValue, content))
@@ -35,12 +44,12 @@ namespace imaging
 						outValue = color;
 					}
 				}
-				content = outValue;
+				output[0] = outValue[0];
+				output[1] = outValue[1];
+				output[2] = outValue[2];
 			}
 		}
-		ImgData outputFile;
-		cvtColor(hsvFile, outputFile, cv::COLOR_HSV2BGR);
-		return outputFile;
+		return outputFile.clone();
 	}
 	namespace
 	{
