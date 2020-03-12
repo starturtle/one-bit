@@ -3,10 +3,25 @@
 
 int main(int argc, char* argv[])
 {
-	if (argc != 3)
+	if (argc != 3 && argc != 5)
 	{
-		std::cout << "Usage: one-bit <infile> <outfile>" << std::endl;
+		std::cout << "Usage: one-bit <infile> <outfile> [<rows> <cols>]" << std::endl;
 		return 1;
+	}
+
+	uint rows = 50, columns = 70;
+	if (argc == 5)
+	{
+		try 
+		{
+			rows = std::stoi(argv[3]);
+			columns = std::stoi(argv[4]);
+		}
+		catch (...)
+		{
+			std::cout << "Either " << argv[3] << " or " << argv[4] << " is not a valid integer." << std::endl;
+			return 3;
+		}
 	}
 
 	// load image
@@ -20,7 +35,9 @@ int main(int argc, char* argv[])
 	// convert to binary image
 	std::vector<PixelValue> values{ cv::Vec3b(255, 255, 255), cv::Vec3b() };
 	ImgData convertedFile = imaging::binarize(imageFile, values);
+	// TODO: pixelate into NxM pixels
+	ImgData pixelatedFile = imaging::pixelate(convertedFile, rows, columns);
 	// store image as copy
-	imaging::store(argv[2], convertedFile);
+	imaging::store(argv[2], pixelatedFile);
 	return 0;
 }

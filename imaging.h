@@ -11,4 +11,5 @@ namespace imaging
 	ImgData load(const std::string& in_path);
 	bool store(const std::string& in_path, ImgData in_data);
 	ImgData binarize(const ImgData& in_image, std::vector<PixelValue> in_resultColors);
+	ImgData pixelate(const ImgData& in_image, int rows, int columns);
 }
