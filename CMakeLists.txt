@@ -4,5 +4,5 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 find_package( OpenCV REQUIRED )
-add_executable( one-bit main.cpp imaging.cpp)
+add_executable( one-bit main.cpp imaging.cpp logging.cpp)
 target_link_libraries( one-bit ${OpenCV_LIBS} )
