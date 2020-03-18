@@ -1,5 +1,5 @@
 #include <iostream>
-#include "imaging.h"
+#include "imaging/FloodFillPixelator.h"
 #include "logging.h"
 
 int main(int argc, char* argv[])
@@ -12,7 +12,7 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	uint rows = 50, columns = 70;
+	unsigned rows = 50, columns = 70;
 	if (argc == 5)
 	{
 		try 
@@ -28,19 +28,18 @@ int main(int argc, char* argv[])
 	}
 
 	// load image
-	ImgData imageFile = imaging::load(argv[1]);
-	if (imageFile.empty())
+	imaging::FloodFillPixelator pixelator(argv[1]);
+	if (pixelator.empty())
 	{
 		logger.getLogStream(logging::Level::ERROR) << "Input file [" << argv[1] << "] is empty!" << std::endl;
 		return 2;
 	}
-	logger.getLogStream(logging::Level::INFO) << "Image has " << imageFile.rows << "x" << imageFile.cols << " pixels and " << imageFile.channels() << " channels" << std::endl;
+	logger.getLogStream(logging::Level::INFO) << pixelator.imageStats() << std::endl;
 	// convert to binary image
-	std::vector<PixelValue> values{ cv::Vec3b(255, 255, 255), cv::Vec3b() };
-	ImgData convertedFile = imaging::binarize(imageFile, values);
-	// TODO: pixelate into NxM pixels
-	ImgData pixelatedFile = imaging::pixelate(convertedFile, rows, columns);
+	pixelator.add_color(PixelValue(255, 255, 255));
+	pixelator.add_color(PixelValue());
+	pixelator.to_pixels(rows, columns);
 	// store image as copy
-	imaging::store(argv[2], pixelatedFile);
+	pixelator.to_file(argv[2]);
 	return 0;
 }
