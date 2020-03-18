@@ -10,8 +10,10 @@ namespace imaging
 		int rows_backup = pictureBuffer.rows;
 		int columns_backup = pictureBuffer.cols;
 		cv::resize(pictureBuffer, buffer, cv::Size(columns, rows));
+		cv::swap(pictureBuffer, buffer);
 		binarize();
-		cv::resize(buffer, pictureBuffer, cv::Size(columns_backup, rows_backup));
-		return false;
+		cv::swap(pictureBuffer, buffer);
+		cv::resize(buffer, pictureBuffer, cv::Size(columns_backup, rows_backup), 0.0, 0.0, cv::InterpolationFlags::INTER_LINEAR_EXACT);
+		return true;
 	}
 }
