@@ -1,5 +1,5 @@
 #include <iostream>
-#include "imaging/FloodFillPixelator.h"
+#include "imaging/ShrinkPixelator.h"
 #include "logging.h"
 
 int main(int argc, char* argv[])
@@ -12,10 +12,20 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
+	// load image
+	imaging::ShrinkPixelator pixelator(argv[1]);
+	if (pixelator.empty())
+	{
+		logger.getLogStream(logging::Level::ERROR) << "Input file [" << argv[1] << "] is empty!" << std::endl;
+		return 2;
+	}
+	
+	logger.getLogStream(logging::Level::INFO) << pixelator.imageStats() << std::endl;
+
 	unsigned rows = 50, columns = 70;
 	if (argc == 5)
 	{
-		try 
+		try
 		{
 			rows = std::stoi(argv[3]);
 			columns = std::stoi(argv[4]);
@@ -27,19 +37,7 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	// load image
-	imaging::FloodFillPixelator pixelator(argv[1]);
-	if (pixelator.empty())
-	{
-		logger.getLogStream(logging::Level::ERROR) << "Input file [" << argv[1] << "] is empty!" << std::endl;
-		return 2;
-	}
-	logger.getLogStream(logging::Level::INFO) << pixelator.imageStats() << std::endl;
 	// convert to binary image
-	pixelator.add_color(PixelValue(255, 255, 255));
-	pixelator.add_color(PixelValue());
-	pixelator.to_pixels(rows, columns);
-	// store image as copy
-	pixelator.to_file(argv[2]);
+	pixelator.run(argv[2], rows, columns);
 	return 0;
 }

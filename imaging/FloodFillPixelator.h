@@ -9,7 +9,6 @@ namespace imaging
 		FloodFillPixelator(const std::string& in_path);
 		bool to_pixels(int rows, int columns) final;
 	private:
-		bool binarize();
 		bool pixelate(int rows, int columns);
 		PixelValue getMostCommonColor(int start_row, int start_column, int end_row, int end_column);
 	};
