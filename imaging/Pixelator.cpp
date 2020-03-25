@@ -14,11 +14,14 @@ namespace imaging
 	}
 	bool Pixelator::run(const std::string& in_writePath, const int rows, const int columns)
 	{
+		return prepare() && to_pixels(rows, columns) && to_file(in_writePath);
+	}
+	bool Pixelator::prepare()
+	{
 		add_color(PixelValue(255, 255, 255));
 		add_color(PixelValue());
-		return to_pixels(rows, columns) && to_file(in_writePath);
+		return true;
 	}
-
 	bool Pixelator::to_file(const std::string& in_path) const
 	{
 		std::vector<int> compression_params;

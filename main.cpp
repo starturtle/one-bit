@@ -38,6 +38,20 @@ int main(int argc, char* argv[])
 	}
 
 	// convert to binary image
-	pixelator.run(argv[2], rows, columns);
+	if (!pixelator.prepare())
+	{
+		logger.getLogStream(logging::Level::ERROR) << "Failed to prepare!" << std::endl;
+		return 4;
+	}
+	if (!pixelator.to_pixels(rows, columns))
+	{
+		logger.getLogStream(logging::Level::ERROR) << "Failed to pixelate!" << std::endl;
+		return 5;
+	}
+	if (!pixelator.to_file(argv[2]))
+	{
+		logger.getLogStream(logging::Level::ERROR) << "Failed to pixelate!" << std::endl;
+		return 6;
+	}
 	return 0;
 }
