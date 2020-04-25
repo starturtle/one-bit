@@ -22,6 +22,7 @@ namespace imaging
 		add_color(PixelValue());
 		return true;
 	}
+
 	bool Pixelator::to_file(const std::string& in_path) const
 	{
 		std::vector<int> compression_params;
@@ -46,6 +47,18 @@ namespace imaging
 		std::stringstream outputStream;
 		outputStream << "Image has " << pictureBuffer.rows << "x" << pictureBuffer.cols << " pixels and " << pictureBuffer.channels() << " channels";
 		return outputStream.str();
+	}
+
+	bool Pixelator::display(const std::string& in_imageName)
+	{
+		bool hasPicture = ((! pictureBuffer.empty()) && (nullptr != pictureBuffer.data));
+		if (hasPicture)
+		{
+			cv::namedWindow(in_imageName, cv::WINDOW_AUTOSIZE);
+			cv::imshow(in_imageName, pictureBuffer);
+			cv::waitKey(0);
+		}
+		return hasPicture;
 	}
 
 	bool Pixelator::binarize()

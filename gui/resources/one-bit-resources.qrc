@@ -1,0 +1,10 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+	<qresource>
+		<file>ApplicationWindow.qml</file>
+		<file>StartPage.ui.qml</file>
+		<file>InputImage.ui.qml</file>
+		<file>PreviewImage.ui.qml</file>
+		<file>qtquickcontrols.conf</file>
+	</qresource>
+</RCC>

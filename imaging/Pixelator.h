@@ -16,8 +16,9 @@ namespace imaging
 		bool to_file(const std::string& in_path) const;
 		void add_color(PixelValue in_color);
 		bool empty() const;
-		virtual bool to_pixels(int rows, int columns) = 0;
+		virtual bool to_pixels(int in_rows, int in_columns) = 0;
 		virtual std::string imageStats() const;
+		virtual bool display(const std::string& in_imageName);
 
 	protected:
 		bool binarize();
