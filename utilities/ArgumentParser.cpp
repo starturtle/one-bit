@@ -34,7 +34,11 @@ bool ArgumentParser::parseArgs(int argc, char** argv)
 	
 	if (!has_use_gui())
 	{
-		set_use_gui(true);
+#ifdef USE_QT5
+		set_use_gui(UiMode::QT);
+#else
+		set_use_gui(UiMode::NONE);
+#endif
 	}
 
 	return true;
@@ -68,6 +72,18 @@ bool ArgumentParser::parse_delegate_bool(const string& in_arg_val)
 	if (std::find(false_values.begin(), true_values.end(), in_arg_val) != false_values.end())
 		return false;
 	throw std::invalid_argument(in_arg_val + " doesn't evaluate to bool");
+}
+
+one_bit::UiMode ArgumentParser::parse_delegate_UiMode(const string& in_arg_val)
+{
+	if (in_arg_val == "NONE")  return UiMode::NONE;
+#ifdef USE_QT5
+	if (in_arg_val == "QT")    return UiMode::QT;
+#endif
+#ifdef USE_CEGUI
+	if (in_arg_val == "CEGUI") return UiMode::CEGUI;
+#endif
+	throw std::invalid_argument(in_arg_val + " is not a valid UI mode enum name");
 }
 
 }

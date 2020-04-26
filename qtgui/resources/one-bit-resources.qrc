@@ -1,0 +1,8 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+	<qresource>
+		<file>InputFileChooser.qml</file>
+		<file>ApplicationWindow.qml</file>
+		<file>qtquickcontrols2.conf</file>
+	</qresource>
+</RCC>
