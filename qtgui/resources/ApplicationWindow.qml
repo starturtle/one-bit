@@ -29,41 +29,66 @@ ApplicationWindow {
                 onTriggered: Qt.quit();
             }
         }
+		Menu {
+			title: qsTr("Settings")
+			MenuItem {
+				text: qsTr("&Pixels...")
+				onTriggered: {
+					pixelSizes.open()
+				}
+			}
+			MenuItem {
+				text: qsTr("Co&lors...")
+				onTriggered: {
+					pixelColors.open()
+				}
+			}
+		}
     }
 
 	InputFileChooser {
 		id: inputFileGet
-		visible: false
 		title: "Select File To Pixelate"
+		onAccepted: {
+		    inputImage.source = inputFileGet.fileUrl
+		    outputImage.source = inputFileGet.fileUrl
+		}
 	}
 	
 	InputFileChooser {
 		id: outputFileGet
-		visible: false
 		selectExisting: false
 		title: "Select Store Path"
+	}
+
+	PixelSizes {
+		id: pixelSizes
+	}
+	
+	PixelColors {
+		id: pixelColors
 	}
 	
 	SplitView {
 		id: imagePreview
 		anchors.fill: parent
 
-		ItemDelegate {
+		Image {
 			id: inputImage
 			SplitView.minimumWidth: 200
 			SplitView.preferredWidth: 400
 			SplitView.maximumWidth: 600
-			icon.source: inputFileGet.fileUrl
-			icon.width: 400
+			source: inputFileGet.fileUrl
+			width: 400
 		}
 
-		ItemDelegate {
+		Image {
 			id: outputImage
 			SplitView.minimumWidth: 200
 			SplitView.preferredWidth: 400
 			SplitView.maximumWidth: 600
-			icon.source: inputFileGet.fileUrl
-			icon.width: 400
+			source: inputFileGet.fileUrl
+			width: 400
 		}
 
 		// ...

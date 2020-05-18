@@ -3,6 +3,8 @@
 	<qresource>
 		<file>InputFileChooser.qml</file>
 		<file>ApplicationWindow.qml</file>
+		<file>PixelSizes.qml</file>
+		<file>PixelColors.qml</file>
 		<file>qtquickcontrols2.conf</file>
 	</qresource>
 </RCC>

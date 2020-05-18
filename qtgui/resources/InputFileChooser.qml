@@ -15,5 +15,4 @@ FileDialog {
         console.log("Canceled")
         close()
     }
-    Component.onCompleted: visible = true
 }
