@@ -8,6 +8,7 @@
 namespace
 {
     unsigned greatest_common_divisor(unsigned a, unsigned b);
+    QColor minDiff(const QColor& in_source, const std::vector<QColor>& in_list);
 }
  
 QtPixelator::QtPixelator(QObject* in_parent)
@@ -22,7 +23,11 @@ QtPixelator::QtPixelator(QObject* in_parent)
 {}
 
 int QtPixelator::run(){
-    return errors::NOT_IMPLEMENTED;
+    after.scaled(QSize(stitchCount, rowCount));
+    pixelate();
+    after.scaled(QSize(stitchCount * stitchWidth, rowCount * stitchHeight));
+    after.save(storagePath.toString());
+    return errors::NONE;
 }
 int QtPixelator::setInputImage(const QUrl& in_url)
 {
@@ -54,6 +59,10 @@ int QtPixelator::setStitchColors(const QColor& in_color1, const QColor& in_color
     return errors::NONE;
 }
 
+const QImage& QtPixelator::result() const
+{
+    return after;
+}
 
 void QtPixelator::recomputeSizes(const int& in_width, const int& in_height, const int& in_rowsPerGauge, const int& in_stitchesPerGauge)
 {
@@ -68,6 +77,17 @@ void QtPixelator::recomputeSizes(const int& in_width, const int& in_height, cons
     stitchCount = (unsigned)(ceil((in_width / 10.) * in_stitchesPerGauge));
     rowCount = (unsigned)(ceil((in_height / 10.) * in_rowsPerGauge));
 } 
+
+void QtPixelator::pixelate()
+{
+    for (int y = 0; y < after.height(); y++) {
+        QRgb* line = (QRgb*)after.scanLine(y);
+        for (int x = 0; x < after.width(); x++) {
+            // line[x] has an individual pixel
+            line[x] = minDiff(QColor(line[x]), colors).rgb();//QColor(255, 128, 0).rgb();
+        }
+    }
+}
 
 namespace
 {
@@ -133,5 +153,29 @@ namespace
             }
             return search_greatest_common_divisor(b, a);
         }
+    }
+
+    double colorDistance(const QColor& one, const QColor& other)
+    {
+        uchar hueDiff = abs(one.hsvHue() - other.hsvHue());
+        uchar saturationDiff = abs(one.hsvSaturation() - other.hsvSaturation());
+        uchar valueDiff = abs(one.value() - other.value());
+        return hueDiff + 10. * (saturationDiff + 10. * valueDiff);
+    }
+
+    QColor minDiff(const QColor& in_source, const std::vector<QColor>& in_list)
+    {
+        double diff = std::numeric_limits<double>::max();
+        QColor returnValue{};
+        for (auto color : in_list)
+        {
+            double currDiff = colorDistance(in_source, color);
+            if (currDiff < diff)
+            {
+                returnValue = color;
+                diff = currDiff;
+            }
+        }
+        return returnValue;
     }
 }

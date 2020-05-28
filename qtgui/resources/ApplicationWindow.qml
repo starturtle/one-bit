@@ -51,9 +51,9 @@ ApplicationWindow {
 				text: qsTr("&Update")
 				onTriggered: {
 					pixelator.setInputImage(inputFileGet.fileUrl)
-					pixelator.setOutputImage(OutputFileGet.fileUrl)
+					pixelator.setOutputImage(outputFileGet.fileUrl)
 					pixelator.setStitchSizes(pixelSizes.resultWidth, pixelSizes.resultHeight, pixelSizes.stitchRows, pixelSizes.stitchColumns)
-					pixelator.setColors(pixelColors.color1.color, pixelColors.color2.color)
+					pixelator.setStitchColors(pixelColors.color1, pixelColors.color2)
 					pixelator.run()
 				}
 			}
@@ -81,6 +81,8 @@ ApplicationWindow {
 	
 	PixelColors {
 		id: pixelColors
+		color1: "white"
+		color2: "black"
 	}
 	
 	SplitView {
