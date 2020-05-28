@@ -1,6 +1,9 @@
 find_package( Qt5 REQUIRED COMPONENTS Core Gui Qml Quick Network )
 find_package(Qt5QuickCompiler)
+set(CMAKE_AUTOMOC ON)
 add_library( qtgui
+	QtPixelator.h
+	QtPixelator.cpp
 	UiApplication.cpp
 	UiApplication.h
 )

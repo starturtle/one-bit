@@ -1,6 +1,7 @@
 import QtQuick 2.12
 import QtQuick.Controls 2.14
 import QtQuick.Dialogs 1.3
+import starturtle.oneBit 1.0
 
 ApplicationWindow {
     id: mainWindow
@@ -41,6 +42,19 @@ ApplicationWindow {
 				text: qsTr("Co&lors...")
 				onTriggered: {
 					pixelColors.open()
+				}
+			}
+		}
+		Menu {
+			title: qsTr("P&review")
+			MenuItem {
+				text: qsTr("&Update")
+				onTriggered: {
+					pixelator.setInputImage(inputFileGet.fileUrl)
+					pixelator.setOutputImage(OutputFileGet.fileUrl)
+					pixelator.setStitchSizes(pixelSizes.resultWidth, pixelSizes.resultHeight, pixelSizes.stitchRows, pixelSizes.stitchColumns)
+					pixelator.setColors(pixelColors.color1.color, pixelColors.color2.color)
+					pixelator.run()
 				}
 			}
 		}
@@ -92,5 +106,8 @@ ApplicationWindow {
 		}
 
 		// ...
+	}
+	QtPixelator {
+		id: pixelator
 	}
 }

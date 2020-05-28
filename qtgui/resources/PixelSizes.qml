@@ -5,53 +5,58 @@ import QtQuick.Layouts 1.14
 Dialog {
     title: "Pixel Size Setup"
     standardButtons: Dialog.Ok | Dialog.Cancel
-    property var pixelWidth: 5
-    property var pixelHeight: 5
-    property var pixelRows: 45
-    property var pixelCols: 45
+	width: 400
+    property var resultWidth: 12
+    property var resultHeight: 12
+    property var stitchRows: 22
+    property var stitchColumns: 25
     onAccepted: {
-        pixelWidth = pixWidth.content.text
-        pixelHeight = pixHeight.content.text
-        pixelRows = pixRows.content.text
-        pixelCols = pixCols.content.text
+        resultWidth = resWidth.content.text
+        resultHeight = resHeight.content.text
+        stitchRows = stRows.content.text
+        stitchColumns = stCols.content.text
         close()
     }
     onRejected: {
-        pixWidth.content.text = pixelWidth
-        pixHeight.content.text = pixelHeight
-        pixRows.content.text = pixelRows
-        pixCols.content.text = pixelCols
+        resWidth.content.text = resultWidth
+        resHeight.content.text = resultHeight
+        stRows.content.text = stitchRows
+        stCols.content.text = stitchColumns
         close()
     }
     GridLayout {
         columns: 2
         Label {
-            text: qsTr("Pixel Width")
+            text: qsTr("Overall Width (cm)")
         }
         TextInput {
-            id: pixWidth
-            text: pixelWidth
+            id: resWidth
+            color: "white"
+            text: resultWidth
         }
         Label {
-            text: qsTr("Pixel Height")
+            text: qsTr("Overall Height (cm)")
         }
         TextInput {
-            id: pixHeight
-            text: pixelHeight
+            id: resHeight
+            color: "white"
+            text: resultHeight
         }
         Label {
-            text: qsTr("Pixel Count Horizontal")
+            text: qsTr("Stitch Test Columns (10cm)")
         }
         TextInput {
-            id: pixCols
-            text: pixelCols
+            id: stCols
+            color: "white"
+            text: stitchColumns
         }
         Label {
-            text: qsTr("Pixel Count Vertical")
+            text: qsTr("Stitch Test Rows (10cm)")
         }
         TextInput {
-            id: pixRows
-            text: pixelRows
+            id: stRows
+            color: "white"
+            text: stitchRows
         }
     }
 }
