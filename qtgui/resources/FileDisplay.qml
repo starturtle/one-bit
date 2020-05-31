@@ -43,4 +43,5 @@ Frame {
 	property var storagePath: outputFileGet.fileUrl
 	function getInputFile() {inputFileGet.open()}
 	function getOutputFile() {outputFileGet.open()}
+	function updateResult() {outputImage.source = outputFileGet.fileUrl}
 }
