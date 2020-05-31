@@ -3,20 +3,11 @@ import QtQuick.Controls 2.14
 import QtQuick.Dialogs 1.3
 import QtQuick.Layouts 1.14
 
-Dialog {
-    title: "Select Colors"
-    standardButtons: Dialog.Ok | Dialog.Cancel
+Frame {
 	property var color1: color("black")
 	property var color2: color("white")
     property var colorToChange: undefined
     property var labelToChange: undefined
-    onAccepted: {
-        close()
-    }
-    onRejected: {
-        console.log("Canceled")
-        close()
-    }
 	
     GridLayout {
         columns: 2

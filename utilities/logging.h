@@ -19,8 +19,9 @@ namespace logging
 		std::ostream& m_outStream;
 		std::ofstream m_nullStream;
 		Level m_minLogLevel;
+		LogStream();
 	public:
-		explicit LogStream();
+		static LogStream& instance();
 		void setLogLevel(Level logLevel);
 		std::ostream& getLogStream(Level logLevel);
 	};

@@ -2,14 +2,17 @@
 
 namespace errors
 {
-	int constexpr NONE = 0;
-	int constexpr PARSE_FAILED = 1;
-	int constexpr WRONG_INPUT_FILE = 2;
-	int constexpr INVALID_IMAGE_SIZES = 3;
-	int constexpr PREPARATION_ERROR = 4;
-	int constexpr PIXELATION_ERROR = 5;
-	int constexpr PRINT_ERROR = 6;
-	int constexpr WRONG_OUTPUT_FILE = 7;
-	int constexpr QT_ERROR = 8;
-	int constexpr NOT_IMPLEMENTED = -1;
+	using Code = int;
+	Code constexpr NONE = 0;
+	Code constexpr PARSE_FAILED = 1;
+	Code constexpr WRONG_INPUT_FILE = 2;
+	Code constexpr INVALID_IMAGE_SIZES = 3;
+	Code constexpr PREPARATION_ERROR = 4;
+	Code constexpr PIXELATION_ERROR = 5;
+	Code constexpr PRINT_ERROR = 6;
+	Code constexpr WRONG_OUTPUT_FILE = 7;
+	Code constexpr QT_ERROR = 8;
+	Code constexpr PAINT_ERROR = 9;
+	Code constexpr WRITE_ERROR = 10;
+	Code constexpr NOT_IMPLEMENTED = -1;
 }

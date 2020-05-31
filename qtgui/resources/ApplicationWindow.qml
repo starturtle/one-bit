@@ -1,6 +1,6 @@
 import QtQuick 2.12
 import QtQuick.Controls 2.14
-import QtQuick.Dialogs 1.3
+import QtQuick.Layouts 1.14
 import starturtle.oneBit 1.0
 
 ApplicationWindow {
@@ -16,13 +16,13 @@ ApplicationWindow {
             MenuItem {
                 text: qsTr("&Load")
                 onTriggered: {
-					inputFileGet.open()
+					imagePreview.getInputFile()
 				}
             }
             MenuItem {
                 text: qsTr("Select Out&path")
                 onTriggered: {
-					outputFileGet.open()
+					imagePreview.getOutputFile()
 				}
             }
             MenuItem {
@@ -31,83 +31,44 @@ ApplicationWindow {
             }
         }
 		Menu {
-			title: qsTr("Settings")
+			title: qsTr("&Pixelation")
 			MenuItem {
-				text: qsTr("&Pixels...")
+				text: qsTr("&Run")
 				onTriggered: {
-					pixelSizes.open()
-				}
-			}
-			MenuItem {
-				text: qsTr("Co&lors...")
-				onTriggered: {
-					pixelColors.open()
-				}
-			}
-		}
-		Menu {
-			title: qsTr("P&review")
-			MenuItem {
-				text: qsTr("&Update")
-				onTriggered: {
-					pixelator.setInputImage(inputFileGet.fileUrl)
-					pixelator.setOutputImage(outputFileGet.fileUrl)
+					pixelator.setInputImage(imagePreview.sourcePath)
+					pixelator.setOutputImage(imagePreview.storagePath)
 					pixelator.setStitchSizes(pixelSizes.resultWidth, pixelSizes.resultHeight, pixelSizes.stitchRows, pixelSizes.stitchColumns)
 					pixelator.setStitchColors(pixelColors.color1, pixelColors.color2)
-					pixelator.run()
+					var result = pixelator.run()
+
 				}
 			}
 		}
     }
 
-	InputFileChooser {
-		id: inputFileGet
-		title: "Select File To Pixelate"
-		onAccepted: {
-		    inputImage.source = inputFileGet.fileUrl
-		    outputImage.source = inputFileGet.fileUrl
-		}
-	}
-	
-	InputFileChooser {
-		id: outputFileGet
-		selectExisting: false
-		title: "Select Store Path"
-	}
-
-	PixelSizes {
-		id: pixelSizes
-	}
-	
-	PixelColors {
-		id: pixelColors
-		color1: "white"
-		color2: "black"
-	}
-	
-	SplitView {
-		id: imagePreview
+	GridLayout
+	{
+		columns: 2
 		anchors.fill: parent
-
-		Image {
-			id: inputImage
-			SplitView.minimumWidth: 200
-			SplitView.preferredWidth: 400
-			SplitView.maximumWidth: 600
-			source: inputFileGet.fileUrl
-			width: 400
+		PixelSizes {
+			Layout.fillWidth: true
+			id: pixelSizes
 		}
-
-		Image {
-			id: outputImage
-			SplitView.minimumWidth: 200
-			SplitView.preferredWidth: 400
-			SplitView.maximumWidth: 600
-			source: inputFileGet.fileUrl
-			width: 400
+	
+		PixelColors {
+			id: pixelColors
+			Layout.fillWidth: true
+			color1: "white"
+			color2: "black"
 		}
-
-		// ...
+	
+		FileDisplay {
+			Layout.fillWidth: true
+			Layout.fillHeight: true
+			Layout.columnSpan: 2
+			id: imagePreview
+			// ...
+		}
 	}
 	QtPixelator {
 		id: pixelator

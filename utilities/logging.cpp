@@ -2,6 +2,12 @@
 
 namespace logging
 {
+
+	LogStream& LogStream::instance()
+	{
+		 static LogStream instance;
+		 return instance;
+	}
 	LogStream::LogStream() : m_outStream{ std::cout }, m_nullStream{}, m_minLogLevel{ Level::SELF_DESTRUCT }
 	{
 		m_nullStream.setstate(std::ios_base::badbit);

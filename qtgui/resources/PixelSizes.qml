@@ -2,28 +2,8 @@ import QtQuick 2.14
 import QtQuick.Controls 2.14
 import QtQuick.Layouts 1.14
 
-Dialog {
-    title: "Pixel Size Setup"
-    standardButtons: Dialog.Ok | Dialog.Cancel
+Frame {
 	width: 400
-    property var resultWidth: 12
-    property var resultHeight: 12
-    property var stitchRows: 22
-    property var stitchColumns: 25
-    onAccepted: {
-        resultWidth = resWidth.content.text
-        resultHeight = resHeight.content.text
-        stitchRows = stRows.content.text
-        stitchColumns = stCols.content.text
-        close()
-    }
-    onRejected: {
-        resWidth.content.text = resultWidth
-        resHeight.content.text = resultHeight
-        stRows.content.text = stitchRows
-        stCols.content.text = stitchColumns
-        close()
-    }
     GridLayout {
         columns: 2
         Label {
@@ -32,7 +12,7 @@ Dialog {
         TextInput {
             id: resWidth
             color: "white"
-            text: resultWidth
+            text: "12"
         }
         Label {
             text: qsTr("Overall Height (cm)")
@@ -40,7 +20,7 @@ Dialog {
         TextInput {
             id: resHeight
             color: "white"
-            text: resultHeight
+            text: "12"
         }
         Label {
             text: qsTr("Stitch Test Columns (10cm)")
@@ -48,7 +28,7 @@ Dialog {
         TextInput {
             id: stCols
             color: "white"
-            text: stitchColumns
+            text: "25"
         }
         Label {
             text: qsTr("Stitch Test Rows (10cm)")
@@ -56,7 +36,11 @@ Dialog {
         TextInput {
             id: stRows
             color: "white"
-            text: stitchRows
+            text: "22"
         }
     }
+    property var resultWidth: resWidth.text
+    property var resultHeight: resHeight.text
+    property var stitchRows: stRows.text
+    property var stitchColumns: stCols.text
 }

@@ -1,9 +1,11 @@
 #include "QtPixelator.h"
 #include "error_codes.h"
+#include "logging.h"
 #include <vector>
 #include <optional>
 #include <cmath>
 #include <algorithm>
+#include <QPainter>
 
 namespace
 {
@@ -13,8 +15,8 @@ namespace
  
 QtPixelator::QtPixelator(QObject* in_parent)
     : QObject(in_parent) 
-    , before{}
-    , after{}
+    , imageBuffer{}
+    , sourcePath{}
     , storagePath{}
     , stitchWidth{0}
     , stitchHeight{0}
@@ -22,46 +24,61 @@ QtPixelator::QtPixelator(QObject* in_parent)
     , rowCount{0}
 {}
 
-int QtPixelator::run(){
-    after.scaled(QSize(stitchCount, rowCount));
-    pixelate();
-    after.scaled(QSize(stitchCount * stitchWidth, rowCount * stitchHeight));
-    after.save(storagePath.toString());
-    return errors::NONE;
-}
-int QtPixelator::setInputImage(const QUrl& in_url)
-{
-    bool fileOk{ before.load(in_url.toString()) };
-    if (fileOk)
+errors::Code QtPixelator::run(){
+    auto result = checkSettings();
+    if (errors::NONE == result)
     {
-        after.load(in_url.toString());
+        QImage colorMap = pixelate();
+        if (colorMap.isNull()) return errors::PIXELATION_ERROR;
+        if (! scalePixels(colorMap)) return errors::PAINT_ERROR;
+        if (! imageBuffer.save(storagePath.toLocalFile())) result = errors::WRITE_ERROR;
     }
-    return (fileOk ? errors::NONE : errors::WRONG_INPUT_FILE);
+    return result;
 }
-int QtPixelator::setOutputImage(const QUrl& in_url)
+errors::Code QtPixelator::setInputImage(const QUrl& in_url)
 {
+    sourcePath = in_url;
+    logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "Load from " << in_url.toLocalFile().toStdString() << " on completion." << std::endl;
+    return (imageBuffer.load(in_url.toLocalFile()) ? errors::NONE : errors::WRONG_INPUT_FILE);
+}
+
+errors::Code QtPixelator::setOutputImage(const QUrl& in_url)
+{
+    logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "Store to " << in_url.toLocalFile().toStdString() << " on completion." << std::endl;
+    if ((sourcePath == in_url) && !(!sourcePath.isEmpty()))
+    {
+        // TODO: show confirm dialog "are you sure you want to overwrite?"
+    }
     storagePath = in_url;
     return storagePath.isEmpty() ? errors::WRONG_OUTPUT_FILE : errors::NONE;
 }
-int QtPixelator::setStitchSizes(const int& in_width, const int& in_height, const int& in_rowsPerGauge, const int& in_stitchesPerGauge)
+
+errors::Code QtPixelator::setStitchSizes(const int& in_width, const int& in_height, const int& in_rowsPerGauge, const int& in_stitchesPerGauge)
 {
-    if (in_width <= 0 || in_height >= 0 || in_rowsPerGauge <= 0 || in_stitchesPerGauge <= 0)
+    if (in_width <= 0 || in_height <= 0 || in_rowsPerGauge <= 0 || in_stitchesPerGauge <= 0)
     {
+        logging::LogStream::instance().getLogStream(logging::Level::ERROR) << "Bad input " << in_width << "x" << in_height << "cm with " << in_stitchesPerGauge << "st, " << in_rowsPerGauge << "r per 10x10cm" << std::endl;
         return errors::INVALID_IMAGE_SIZES;
     }
+    logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "Result will have " << in_width << "x" << in_height << "cm with " << in_stitchesPerGauge << "st, " << in_rowsPerGauge << "r per 10x10cm" << std::endl;
     recomputeSizes(in_width, in_height, in_rowsPerGauge, in_stitchesPerGauge);
+    logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "Result will have " << stitchCount << "st, " << rowCount << "r, stixels will measure " << stitchWidth << "x" << stitchHeight << " each" << std::endl;
 
     return errors::NONE;
 }
-int QtPixelator::setStitchColors(const QColor& in_color1, const QColor& in_color2)
+
+errors::Code QtPixelator::setStitchColors(const QColor& in_color1, const QColor& in_color2)
 {
+    if (in_color1 == in_color2) return errors::PREPARATION_ERROR;
+    if (!(in_color1.isValid() && in_color2.isValid())) return errors::PREPARATION_ERROR;
     colors = { in_color1, in_color2 };
+    logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "Set stitch colors" << std::endl;
     return errors::NONE;
 }
 
 const QImage& QtPixelator::result() const
 {
-    return after;
+    return imageBuffer;
 }
 
 void QtPixelator::recomputeSizes(const int& in_width, const int& in_height, const int& in_rowsPerGauge, const int& in_stitchesPerGauge)
@@ -78,15 +95,53 @@ void QtPixelator::recomputeSizes(const int& in_width, const int& in_height, cons
     rowCount = (unsigned)(ceil((in_height / 10.) * in_rowsPerGauge));
 } 
 
-void QtPixelator::pixelate()
+QImage QtPixelator::pixelate()
 {
-    for (int y = 0; y < after.height(); y++) {
-        QRgb* line = (QRgb*)after.scanLine(y);
-        for (int x = 0; x < after.width(); x++) {
+    QImage colorMap = imageBuffer.scaled(QSize(stitchCount, rowCount));
+    for (int y = 0; y < imageBuffer.height(); y++) {
+        QRgb* line = (QRgb*)imageBuffer.scanLine(y);
+        for (int x = 0; x < imageBuffer.width(); x++) {
             // line[x] has an individual pixel
             line[x] = minDiff(QColor(line[x]), colors).rgb();//QColor(255, 128, 0).rgb();
         }
     }
+    logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "Get pixelation template of size " << colorMap.width() << "x" << colorMap.height() << std::endl;
+    return colorMap;
+}
+
+bool QtPixelator::scalePixels(const QImage& colorMap)
+{
+    if (! ((colorMap.width() == stitchCount) && (colorMap.height() == rowCount))) return false;
+    imageBuffer.scaled(QSize(stitchCount * stitchWidth, rowCount * stitchHeight));
+    QPainter qPainter(&imageBuffer);
+    qPainter.setBrush(Qt::NoBrush);
+    bool bEnd = qPainter.end();
+    for (int y = 0; y < colorMap.height(); y++) {
+        QRgb* line = (QRgb*)colorMap.scanLine(y);
+        for (int x = 0; x < colorMap.width(); x++) {
+            qPainter.setPen(QColor(line[x]));
+            qPainter.drawRect(x * stitchWidth, y * stitchWidth, stitchWidth, stitchHeight);
+        }
+    }
+    qPainter.end();
+    return true;
+}
+
+errors::Code QtPixelator::checkSettings()
+{
+    if (imageBuffer.isNull())
+    {
+        return errors::WRONG_INPUT_FILE;
+    }
+    if (storagePath.isEmpty())
+    {
+        return errors::WRONG_OUTPUT_FILE;
+    }
+    if (stitchWidth <= 0 || stitchHeight <= 0 || stitchCount <= 0 || rowCount <= 0)
+    {
+        return errors::INVALID_IMAGE_SIZES;
+    }
+    return errors::NONE;
 }
 
 namespace

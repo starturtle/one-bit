@@ -22,10 +22,12 @@ public:
 
 private:
     void recomputeSizes(const int& in_width, const int& in_height, const int& in_rowsPerGauge, const int& in_stitchesPerGauge);
-    void pixelate();
+    QImage pixelate();
+    bool scalePixels(const QImage& colorMap);
+    int checkSettings();
 
-    QImage before;
-    QImage after;
+    QImage imageBuffer;
+    QUrl sourcePath;
     QUrl storagePath;
     unsigned stitchWidth;
     unsigned stitchHeight;
