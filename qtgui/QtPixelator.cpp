@@ -32,6 +32,7 @@ errors::Code QtPixelator::run(){
         if (colorMap.isNull()) return errors::PIXELATION_ERROR;
         if (! scalePixels(colorMap)) return errors::PAINT_ERROR;
         if (! imageBuffer.save(storagePath.toLocalFile())) result = errors::WRITE_ERROR;
+        logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "File written" << std::endl;
     }
     return result;
 }
@@ -98,13 +99,17 @@ void QtPixelator::recomputeSizes(const int& in_width, const int& in_height, cons
 QImage QtPixelator::pixelate()
 {
     QImage colorMap = imageBuffer.scaled(QSize(stitchCount, rowCount));
-    for (int y = 0; y < imageBuffer.height(); y++) {
-        QRgb* line = (QRgb*)imageBuffer.scanLine(y);
-        for (int x = 0; x < imageBuffer.width(); x++) {
+    for (int y = 0; y < colorMap.height(); y++) {
+        QRgb* line = (QRgb*)colorMap.scanLine(y);
+        for (int x = 0; x < colorMap.width(); x++) {
             // line[x] has an individual pixel
-            line[x] = minDiff(QColor(line[x]), colors).rgb();//QColor(255, 128, 0).rgb();
+            auto nearestColor = minDiff(QColor(line[x]), colors);
+            if (nearestColor.isValid()) line[x] = nearestColor.rgb();
+            else line[x] = Qt::black;
         }
+        logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "x";
     }
+    logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << std::endl;
     logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "Get pixelation template of size " << colorMap.width() << "x" << colorMap.height() << std::endl;
     return colorMap;
 }
@@ -112,18 +117,20 @@ QImage QtPixelator::pixelate()
 bool QtPixelator::scalePixels(const QImage& colorMap)
 {
     if (! ((colorMap.width() == stitchCount) && (colorMap.height() == rowCount))) return false;
-    imageBuffer.scaled(QSize(stitchCount * stitchWidth, rowCount * stitchHeight));
+    imageBuffer = imageBuffer.scaled(QSize(stitchCount * stitchWidth, rowCount * stitchHeight));
     QPainter qPainter(&imageBuffer);
-    qPainter.setBrush(Qt::NoBrush);
-    bool bEnd = qPainter.end();
     for (int y = 0; y < colorMap.height(); y++) {
         QRgb* line = (QRgb*)colorMap.scanLine(y);
         for (int x = 0; x < colorMap.width(); x++) {
             qPainter.setPen(QColor(line[x]));
-            qPainter.drawRect(x * stitchWidth, y * stitchWidth, stitchWidth, stitchHeight);
+            qPainter.setBrush(QColor(line[x]));
+            qPainter.drawRect(x * stitchWidth, y * stitchHeight, stitchWidth, stitchHeight);
         }
+        logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "x";
     }
+    logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << std::endl;
     qPainter.end();
+    logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "Pixelation complete"<< std::endl;
     return true;
 }
 

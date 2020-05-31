@@ -23,11 +23,7 @@ Frame {
             width: 200
             height: 30
             onClicked: {
-                 colorChooser.currentColor = color1
-                 colorChooser.color = color1
-                 colorToChange = color1
-				 labelToChange = lbcol1
-                 colorChooser.open()
+                 colorChooser1.open()
             }
         }
         Rectangle {
@@ -42,23 +38,22 @@ Frame {
             width: 200
             height: 30
             onClicked: {
-                 colorChooser.currentColor = color2
-                 colorChooser.color = color2
-                 colorToChange = color2
-				 labelToChange = lbcol2
-                 colorChooser.open()
+                 colorChooser2.open()
             }
         }
     }
     ColorDialog {
-        id: colorChooser
+        id: colorChooser1
 		visible: false
         onAccepted: {
-			if (colorToChange != undefined)
-			{
-				colorToChange = color
-				labelToChange.color = color
-			}
+			color1 = color
+        }
+    }
+    ColorDialog {
+        id: colorChooser2
+		visible: false
+        onAccepted: {
+			color2 = color
         }
     }
 }
