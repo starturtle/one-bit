@@ -1,59 +1,70 @@
 import QtQuick 2.12
 import QtQuick.Controls 2.14
-import QtQuick.Dialogs 1.3
 import QtQuick.Layouts 1.14
 
-Frame {
-  property var color1: color("black")
-  property var color2: color("white")
-  property var colorToChange: undefined
-  property var labelToChange: undefined
-  
+Pane {
   GridLayout {
     columns: 2
-    Rectangle {
-      id: lbcol1
-      color: color1
-      width: 200
-      height: 50
-    }
     Button {
-      id: changeColor1
-      text: "Change"
-      width: 200
-      height: 30
+      id: add
+      text: "Add"
       onClicked: {
-         colorChooser1.open()
+        if (! cols3.visible)
+        {
+          cols3.visible = true
+          remove.enabled = true
+        }
+        else if (! cols4.visible)
+        {
+          cols4.visible = true
+          enabled = false
+        }
       }
     }
-    Rectangle {
-      id: lbcol2
-      color: color2
-      width: 200
-      height: 50
-    }
     Button {
-      id: changeColor2
-      text: "Change"
-      width: 200
-      height: 30
+      id: remove
+      text: "Remove"
       onClicked: {
-         colorChooser2.open()
+        if (cols4.visible)
+        {
+          cols4.visible = false
+          add.enabled = true
+        }
+        else if (cols3.visible)
+        {
+          cols3.visible = false
+          enabled = false
+        }
       }
     }
-  }
-  ColorDialog {
-    id: colorChooser1
-    visible: false
-    onAccepted: {
-      color1 = color
+    PixelColorSettings {
+      id: cols1
+      pixelColor: "black"
+    }
+    PixelColorSettings {
+      id: cols2
+      pixelColor: "white"
+    }
+    PixelColorSettings {
+      id: cols3
+      visible: false
+      pixelColor: "red"
+    }
+    PixelColorSettings {
+      id: cols4
+      visible: false
+      pixelColor: "green"
     }
   }
-  ColorDialog {
-    id: colorChooser2
-    visible: false
-    onAccepted: {
-      color2 = color
+  property variant colors: {
+    if (cols4.visible) {
+      return [cols1.pixelColor, cols2.pixelColor, cols3.pixelColor, cols4.pixelColor]
+    }
+    else if (cols3.visible) {
+      return [cols1.pixelColor, cols2.pixelColor, cols3.pixelColor]
+    }
+    else {
+      return [cols1.pixelColor, cols2.pixelColor]
     }
   }
 }

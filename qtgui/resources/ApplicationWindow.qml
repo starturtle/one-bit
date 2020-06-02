@@ -38,7 +38,7 @@ ApplicationWindow {
           pixelator.setInputImage(imagePreview.sourcePath)
           pixelator.setOutputImage(imagePreview.storagePath)
           pixelator.setStitchSizes(pixelSizes.resultWidth, pixelSizes.resultHeight, pixelSizes.stitchRows, pixelSizes.stitchColumns)
-          pixelator.setStitchColors(pixelColors.color1, pixelColors.color2)
+          pixelator.setStitchColors(pixelColors.colors)
           var result = pixelator.run()
           imagePreview.updateResult()
         }
@@ -58,8 +58,6 @@ ApplicationWindow {
     PixelColors {
       id: pixelColors
       Layout.fillWidth: true
-      color1: "white"
-      color2: "black"
     }
   
     FileDisplay {

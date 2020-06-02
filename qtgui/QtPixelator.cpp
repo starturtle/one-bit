@@ -9,6 +9,8 @@
 
 namespace
 {
+  bool hasDuplicates(const std::vector<QColor>& colors);
+  bool allValid(const std::vector<QColor>& colors);
   unsigned greatest_common_divisor(unsigned a, unsigned b);
   QColor minDiff(const QColor& in_source, const std::vector<QColor>& in_list);
 }
@@ -68,11 +70,12 @@ errors::Code QtPixelator::setStitchSizes(const int& in_width, const int& in_heig
   return errors::NONE;
 }
 
-errors::Code QtPixelator::setStitchColors(const QColor& in_color1, const QColor& in_color2)
+errors::Code QtPixelator::setStitchColors(const std::vector<QColor> in_colors)
 {
-  if (in_color1 == in_color2) return errors::DUPLICATE_COLOR;
-  if (!(in_color1.isValid() && in_color2.isValid())) return errors::INVALID_COLOR;
-  colors = { in_color1, in_color2 };
+
+  colors = { in_colors };
+  if (! allValid(in_colors)) return errors::INVALID_COLOR;
+  if (hasDuplicates(in_colors)) return errors::DUPLICATE_COLOR;
   logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "Set stitch colors" << std::endl;
   return errors::NONE;
 }
@@ -154,6 +157,22 @@ errors::Code QtPixelator::checkSettings()
 
 namespace
 {
+  bool hasDuplicates(const std::vector<QColor>& colors)
+  {
+    for (auto& color1 = colors.begin(); color1 != colors.end(); ++color1)
+    {
+      auto& nextColor = color1;
+      ++nextColor;
+      if (std::find(nextColor, colors.end(), *color1) != colors.end()) return true;
+    }
+    return false;
+  }
+
+  bool allValid(const std::vector<QColor>& colors)
+  {
+    return std::any_of(colors.begin(), colors.end(), [](const QColor& color) {return color.isValid(); });
+  }
+
   std::optional<unsigned> divides(unsigned number, unsigned divisor)
   {
     unsigned result = number / divisor;

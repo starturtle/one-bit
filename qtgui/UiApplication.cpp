@@ -15,10 +15,16 @@ namespace gui_mode
 
     QGuiApplication uiApp(argc, argv);
     uiApp.setOrganizationName("starturtle");
-    uiApp.setOrganizationDomain("one-bit");
+    uiApp.setOrganizationDomain("org");
+    uiApp.setApplicationName("one-bit");
+    uiApp.setApplicationVersion("1.0");
 
     // register actual pixelation execution object
     if (-1 == qmlRegisterType<QtPixelator>("starturtle.oneBit", 1, 0, "QtPixelator"))
+    {
+      return errors::QT_ERROR;
+    }
+    if (-1 == qRegisterMetaType<std::vector<QColor>>()) // for color array in QtPixelator
     {
       return errors::QT_ERROR;
     }

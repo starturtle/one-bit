@@ -16,7 +16,7 @@ public:
   Q_INVOKABLE int setInputImage(const QUrl& in_url);
   Q_INVOKABLE int setOutputImage(const QUrl& in_url);
   Q_INVOKABLE int setStitchSizes(const int& in_width, const int& in_height, const int& in_rowsPerGauge, const int& in_stitchesPerGauge);
-  Q_INVOKABLE int setStitchColors(const QColor& in_color1, const QColor& in_color2);
+  Q_INVOKABLE int setStitchColors(const std::vector<QColor> in_colors);
 
   const QImage& result() const;
 
