@@ -4,11 +4,11 @@ import QtQuick.Dialogs 1.3
 import QtQuick.Layouts 1.14
 
 Frame {
-	property var color1: color("black")
-	property var color2: color("white")
+    property var color1: color("black")
+    property var color2: color("white")
     property var colorToChange: undefined
     property var labelToChange: undefined
-	
+    
     GridLayout {
         columns: 2
         Rectangle {
@@ -44,16 +44,16 @@ Frame {
     }
     ColorDialog {
         id: colorChooser1
-		visible: false
+        visible: false
         onAccepted: {
-			color1 = color
+            color1 = color
         }
     }
     ColorDialog {
         id: colorChooser2
-		visible: false
+        visible: false
         onAccepted: {
-			color2 = color
+            color2 = color
         }
     }
 }

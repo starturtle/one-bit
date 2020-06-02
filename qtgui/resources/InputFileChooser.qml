@@ -6,8 +6,8 @@ FileDialog {
     title: "Please choose a file"
     folder: shortcuts.pictures
     nameFilters: [ "Image files (*.jpg *.png)", "All files (*)" ]
-	visible: false
-	selectFolder: false
+    visible: false
+    selectFolder: false
     onAccepted: {
         close()
     }

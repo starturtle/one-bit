@@ -3,7 +3,7 @@ import QtQuick.Controls 2.14
 import QtQuick.Layouts 1.14
 
 Frame {
-	width: 400
+    width: 400
     GridLayout {
         columns: 2
         Label {
@@ -23,7 +23,7 @@ Frame {
             text: "12"
         }
         Label {
-            text: qsTr("Stitch Test Columns (10cm)")
+            text: qsTr("Stitches per gauge (10cm)")
         }
         TextInput {
             id: stCols
@@ -31,7 +31,7 @@ Frame {
             text: "25"
         }
         Label {
-            text: qsTr("Stitch Test Rows (10cm)")
+            text: qsTr("Rows per gauge (10cm)")
         }
         TextInput {
             id: stRows

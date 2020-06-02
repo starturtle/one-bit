@@ -16,61 +16,61 @@ ApplicationWindow {
             MenuItem {
                 text: qsTr("&Load")
                 onTriggered: {
-					imagePreview.getInputFile()
-				}
+                    imagePreview.getInputFile()
+                }
             }
             MenuItem {
                 text: qsTr("Select Out&path")
                 onTriggered: {
-					imagePreview.getOutputFile()
-				}
+                    imagePreview.getOutputFile()
+                }
             }
             MenuItem {
                 text: qsTr("Exit")
                 onTriggered: Qt.quit();
             }
         }
-		Menu {
-			title: qsTr("&Pixelation")
-			MenuItem {
-				text: qsTr("&Run")
-				onTriggered: {
-					pixelator.setInputImage(imagePreview.sourcePath)
-					pixelator.setOutputImage(imagePreview.storagePath)
-					pixelator.setStitchSizes(pixelSizes.resultWidth, pixelSizes.resultHeight, pixelSizes.stitchRows, pixelSizes.stitchColumns)
-					pixelator.setStitchColors(pixelColors.color1, pixelColors.color2)
-					var result = pixelator.run()
-					imagePreview.updateResult()
-				}
-			}
-		}
+        Menu {
+            title: qsTr("&Pixelation")
+            MenuItem {
+                text: qsTr("&Run")
+                onTriggered: {
+                    pixelator.setInputImage(imagePreview.sourcePath)
+                    pixelator.setOutputImage(imagePreview.storagePath)
+                    pixelator.setStitchSizes(pixelSizes.resultWidth, pixelSizes.resultHeight, pixelSizes.stitchRows, pixelSizes.stitchColumns)
+                    pixelator.setStitchColors(pixelColors.color1, pixelColors.color2)
+                    var result = pixelator.run()
+                    imagePreview.updateResult()
+                }
+            }
+        }
     }
 
-	GridLayout
-	{
-		columns: 2
-		anchors.fill: parent
-		PixelSizes {
-			Layout.fillWidth: true
-			id: pixelSizes
-		}
-	
-		PixelColors {
-			id: pixelColors
-			Layout.fillWidth: true
-			color1: "white"
-			color2: "black"
-		}
-	
-		FileDisplay {
-			Layout.fillWidth: true
-			Layout.fillHeight: true
-			Layout.columnSpan: 2
-			id: imagePreview
-			// ...
-		}
-	}
-	QtPixelator {
-		id: pixelator
-	}
+    GridLayout
+    {
+        columns: 2
+        anchors.fill: parent
+        PixelSizes {
+            Layout.fillWidth: true
+            id: pixelSizes
+        }
+    
+        PixelColors {
+            id: pixelColors
+            Layout.fillWidth: true
+            color1: "white"
+            color2: "black"
+        }
+    
+        FileDisplay {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            Layout.columnSpan: 2
+            id: imagePreview
+            // ...
+        }
+    }
+    QtPixelator {
+        id: pixelator
+    }
 }

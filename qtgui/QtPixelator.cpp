@@ -70,8 +70,8 @@ errors::Code QtPixelator::setStitchSizes(const int& in_width, const int& in_heig
 
 errors::Code QtPixelator::setStitchColors(const QColor& in_color1, const QColor& in_color2)
 {
-    if (in_color1 == in_color2) return errors::PREPARATION_ERROR;
-    if (!(in_color1.isValid() && in_color2.isValid())) return errors::PREPARATION_ERROR;
+    if (in_color1 == in_color2) return errors::DUPLICATE_COLOR;
+    if (!(in_color1.isValid() && in_color2.isValid())) return errors::INVALID_COLOR;
     colors = { in_color1, in_color2 };
     logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "Set stitch colors" << std::endl;
     return errors::NONE;
@@ -103,9 +103,9 @@ QImage QtPixelator::pixelate()
         QRgb* line = (QRgb*)colorMap.scanLine(y);
         for (int x = 0; x < colorMap.width(); x++) {
             // line[x] has an individual pixel
-            auto nearestColor = minDiff(QColor(line[x]), colors);
-            if (nearestColor.isValid()) line[x] = nearestColor.rgb();
-            else line[x] = Qt::black;
+            auto& colorForPixel{ line[x] };
+            auto nearestColor = minDiff(QColor(colorForPixel), colors);
+            colorForPixel = nearestColor.isValid() ? nearestColor.rgb() : Qt::black;
         }
         logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "x";
     }
@@ -122,8 +122,9 @@ bool QtPixelator::scalePixels(const QImage& colorMap)
     for (int y = 0; y < colorMap.height(); y++) {
         QRgb* line = (QRgb*)colorMap.scanLine(y);
         for (int x = 0; x < colorMap.width(); x++) {
-            qPainter.setPen(QColor(line[x]));
-            qPainter.setBrush(QColor(line[x]));
+            QColor stixelColor{ line[x] };
+            qPainter.setPen(stixelColor);
+            qPainter.setBrush(stixelColor);
             qPainter.drawRect(x * stitchWidth, y * stitchHeight, stitchWidth, stitchHeight);
         }
         logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "x";
