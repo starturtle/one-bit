@@ -54,6 +54,7 @@ std::map<std::string,std::function<bool(const std::string&)>> ArgumentParser::in
     { "-infile", std::bind(&ArgumentParser::parse_input_file, this, std::placeholders::_1) },
     { "-outfile", std::bind(&ArgumentParser::parse_output_file, this, std::placeholders::_1) },
     { "-gui", std::bind(&ArgumentParser::parse_use_gui, this, std::placeholders::_1) },
+    { "-crop-region", std::bind(&ArgumentParser::parse_crop_region, this, std::placeholders::_1)}
   };
 }
 
@@ -88,4 +89,18 @@ one_bit::UiMode ArgumentParser::parse_delegate_UiMode(const string& in_arg_val)
   throw std::invalid_argument(in_arg_val + " is not a valid UI mode enum name");
 }
 
+one_bit::CropRegion ArgumentParser::parse_delegate_CropRegion(const string& in_arg_val)
+{
+  if (in_arg_val == "TOP_LEFT") return CropRegion::TOP_LEFT;
+  if (in_arg_val == "TOP") return CropRegion::TOP;
+  if (in_arg_val == "TOP_RIGHT") return CropRegion::TOP_RIGHT;
+  if (in_arg_val == "LEFT") return CropRegion::LEFT;
+  if (in_arg_val == "CENTER") return CropRegion::CENTER;
+  if (in_arg_val == "RIGHT") return CropRegion::RIGHT;
+  if (in_arg_val == "BOTTOM_LEFT") return CropRegion::BOTTOM_LEFT;
+  if (in_arg_val == "BOTTOM") return CropRegion::BOTTOM;
+  if (in_arg_val == "BOTTOM_RIGHT") return CropRegion::BOTTOM_RIGHT;
+  // value is optional, defaults to TOP_LEFT.
+  return CropRegion::TOP_LEFT;
+}
 }

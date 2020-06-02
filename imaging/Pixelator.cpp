@@ -12,9 +12,9 @@ namespace imaging
   {
 
   }
-  bool Pixelator::run(const std::string& in_writePath, const int in_width, const int in_height, const int in_gauge_stitches, const int in_gauge_rows)
+  bool Pixelator::run(const std::string& in_writePath, const int in_width, const int in_height, const int in_gauge_stitches, const int in_gauge_rows, const one_bit::CropRegion in_cropRegion)
   {
-    return prepare() && to_pixels(in_width, in_height, in_gauge_stitches, in_gauge_rows) && to_file(in_writePath);
+    return prepare() && to_pixels(in_width, in_height, in_gauge_stitches, in_gauge_rows, in_cropRegion) && to_file(in_writePath);
   }
   bool Pixelator::prepare()
   {
