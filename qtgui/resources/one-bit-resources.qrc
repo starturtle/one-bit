@@ -1,0 +1,11 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <qresource>
+        <file>InputFileChooser.qml</file>
+        <file>ApplicationWindow.qml</file>
+        <file>PixelSizes.qml</file>
+        <file>PixelColors.qml</file>
+        <file>FileDisplay.qml</file>
+        <file>qtquickcontrols2.conf</file>
+    </qresource>
+</RCC>
