@@ -2,6 +2,7 @@
 import QtQuick.Controls 2.14
 import QtQuick.Layouts 1.14
 import QtQuick.Dialogs 1.3
+import starturtle.oneBit 1.0
 
 Frame {
   InputFileChooser {
@@ -27,21 +28,18 @@ Frame {
       SplitView.preferredWidth: 400
       SplitView.maximumWidth: 600
       source: inputFileGet.fileUrl
-      width: 400
     }
 
-    Image {
+    ResultImage {
       id: outputImage
       SplitView.minimumWidth: 200
       SplitView.preferredWidth: 400
       SplitView.maximumWidth: 600
-      source: inputFileGet.fileUrl
-      width: 400
     }
   }
   property var sourcePath: inputFileGet.fileUrl
   property var storagePath: outputFileGet.fileUrl
+  property Image result: outputImage.data
   function getInputFile() {inputFileGet.open()}
   function getOutputFile() {outputFileGet.open()}
-  function updateResult() {outputImage.source = outputFileGet.fileUrl}
 }

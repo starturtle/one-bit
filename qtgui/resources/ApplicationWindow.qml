@@ -40,7 +40,7 @@ ApplicationWindow {
           pixelator.setStitchSizes(pixelSizes.resultWidth, pixelSizes.resultHeight, pixelSizes.stitchRows, pixelSizes.stitchColumns)
           pixelator.setStitchColors(pixelColors.colors)
           var result = pixelator.run()
-          imagePreview.updateResult()
+          imagePreview.result = pixelator.result
         }
       }
     }

@@ -6,6 +6,8 @@ add_library( qtgui
   QtPixelator.cpp
   UiApplication.cpp
   UiApplication.h
+  ResultImage.h
+  ResultImage.cpp
 )
 target_include_directories(qtgui PRIVATE  ${Qt5_DIR})
 target_link_libraries( qtgui PUBLIC Qt5::Core Qt5::Gui Qt5::Qml Qt5::Quick Qt5::Network )
