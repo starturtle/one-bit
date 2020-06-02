@@ -4,11 +4,13 @@ namespace imaging
 {
   ShrinkPixelator::ShrinkPixelator(const std::string& in_path) : Pixelator{ in_path } {}
 
-  bool ShrinkPixelator::to_pixels(int rows, int columns)
+  bool ShrinkPixelator::to_pixels(int width, int height, int gauge_stitches, int gauge_rows)
   {
     ImgData buffer;
     int rows_backup = pictureBuffer.rows;
     int columns_backup = pictureBuffer.cols;
+    int columns = width * gauge_stitches / 10;
+    int rows = height * gauge_rows / 10;
     try
     {
       cv::resize(pictureBuffer, buffer, cv::Size(columns, rows));

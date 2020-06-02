@@ -21,8 +21,10 @@ namespace one_bit
 
 class ArgumentParser
 {
-  OPTIONAL_PROPERTY(int, rows)
-  OPTIONAL_PROPERTY(int, columns)
+  OPTIONAL_PROPERTY(int, height)
+  OPTIONAL_PROPERTY(int, width)
+  OPTIONAL_PROPERTY(int, gauge_stitches)
+  OPTIONAL_PROPERTY(int, gauge_rows)
   OPTIONAL_PROPERTY(string, input_file)
   OPTIONAL_PROPERTY(string, output_file)
   OPTIONAL_PROPERTY(UiMode, use_gui)

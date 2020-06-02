@@ -47,8 +47,10 @@ bool ArgumentParser::parseArgs(int argc, char** argv)
 std::map<std::string,std::function<bool(const std::string&)>> ArgumentParser::initParser()
 {
   return std::map<std::string, std::function<bool(const std::string&)> >{
-    { "-rows", std::bind(&ArgumentParser::parse_rows, this, std::placeholders::_1) },
-    { "-columns", std::bind(&ArgumentParser::parse_columns, this, std::placeholders::_1) },
+    { "-height", std::bind(&ArgumentParser::parse_height, this, std::placeholders::_1) },
+    { "-width", std::bind(&ArgumentParser::parse_width, this, std::placeholders::_1) },
+    { "-gauge-st", std::bind(&ArgumentParser::parse_gauge_stitches, this, std::placeholders::_1)},
+    { "-gauge-rw", std::bind(&ArgumentParser::parse_gauge_rows, this, std::placeholders::_1) },
     { "-infile", std::bind(&ArgumentParser::parse_input_file, this, std::placeholders::_1) },
     { "-outfile", std::bind(&ArgumentParser::parse_output_file, this, std::placeholders::_1) },
     { "-gui", std::bind(&ArgumentParser::parse_use_gui, this, std::placeholders::_1) },

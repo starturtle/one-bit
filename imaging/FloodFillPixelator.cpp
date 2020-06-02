@@ -13,8 +13,10 @@ namespace imaging
 
 FloodFillPixelator::FloodFillPixelator(const std::string& in_path) : Pixelator(in_path) {}
 
-bool FloodFillPixelator::to_pixels(int rows, int columns)
+bool FloodFillPixelator::to_pixels(int width, int height, int gauge_stitches, int gauge_rows)
 {
+  int rows = gauge_rows * height / 10;
+  int columns = gauge_stitches * width / 10;
   return binarize() && pixelate(rows, columns);
 }
 

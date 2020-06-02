@@ -11,12 +11,12 @@ namespace imaging
   {
   public:
     Pixelator(const std::string& in_path); 
-    virtual bool run(const std::string& in_writePath, const int rows, const int columns);
+    virtual bool run(const std::string& in_writePath, const int in_width, const int in_height, const int in_gauge_stitches, const int in_gauge_rows);
     bool prepare();
     bool to_file(const std::string& in_path) const;
     void add_color(PixelValue in_color);
     bool empty() const;
-    virtual bool to_pixels(int in_rows, int in_columns) = 0;
+    virtual bool to_pixels(int width, int height, int gauge_stitches, int gauge_rows) = 0;
     virtual std::string imageStats() const;
     virtual bool display(const std::string& in_imageName);
 
