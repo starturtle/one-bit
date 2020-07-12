@@ -13,24 +13,23 @@ jobs:
         key: $(Build.SourcesDirectory)/vcpkg_x64-linux.txt | "$(vcpkgGitRef)" | "$(Agent.OS)"
         path: '$(Build.BinariesDirectory)/vcpkg'
      
-     - task: run-vcpkg@0
-       uses: lukka/run-vcpkg@v3
-       displayName: 'Run vcpkg'
-       inputs:
+    - task: run-vcpkg@0
+      uses: lukka/run-vcpkg@v3
+      displayName: 'Run vcpkg'
+      inputs:
         # commit id for exact vcpkg's version to fetch
         vcpkgGitRef: ee17a685087a6886e5681e355d36cd784f0dd2c8
-         vcpkgArguments: @$(Build.SourcesDirectory)/vcpkg_x64-linux.txt
-         # Specify the exact commit id to fetch.
-         vcpkgGitCommitId: $(vcpkgGitRef)
-
-     - uses: lukka/get-cmake@latest
+        vcpkgArguments: @$(Build.SourcesDirectory)/vcpkg_x64-linux.txt
+        # Specify the exact commit id to fetch.
+        vcpkgGitCommitId: $(vcpkgGitRef)
     
-     - task: run-cmake@0
-       displayName: 'Run CMake with CMakeLists.txt'
-       inputs:
-         cmakeListsOrSettingsJson: 'CMakeLists'
-         cmakeListsTxtPath: CMakeLists.txt
-         useVcpkgToolchainFile: true'
+    - task: run-cmake@0
+      displayName: 'Run CMake with CMakeLists.txt'
+      uses: lukka/get-cmake@latest
+      inputs:
+        cmakeListsOrSettingsJson: 'CMakeLists'
+        cmakeListsTxtPath: CMakeLists.txt
+        useVcpkgToolchainFile: true'
 
     - name: Install Qt
       uses: jurplel/install-qt-action@v2.6.3
