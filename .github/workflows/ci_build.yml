@@ -4,25 +4,16 @@ on: [push]
 
 jobs: 
   build: 
-    runs-on: windows-latest
+    runs-on: [ windows-latest, ubuntu-latest]
     steps: 
-    # get the code
-    - uses: actions/checkout@v2
-    
     # Install latest CMake.
     - uses: lukka/get-cmake@latest
 
-    # Restore from cache the previously built ports.
-    - name: Restore from cache and run vcpkg
+    - name: run vcpkg
       uses: lukka/run-vcpkg@v3
       with:
         # Response file stored in source control, it provides the list of ports and triplet(s).
-        vcpkgArguments: '@${{ env.vcpkgResponseFile }}'
-        # Location of the vcpkg as submodule of the repository.
-        vcpkgDirectory: '${{ github.workspace }}/vcpkg'
-        # Since the cache must be invalidated when content of the response file changes, let's
-        # compute its hash and append this to the computed cache's key.
-        appendedCacheKey: ${{ hashFiles(env.vcpkgResponseFile) }}
+        vcpkgGitCommitId: 'ee17a685087a6886e5681e355d36cd784f0dd2c8'
 
     # Install latest Qt
     - name: Install Qt
@@ -32,7 +23,11 @@ jobs:
       uses: Dovyski/setup-opencv-action@v1
       with:
         opencv-version: '4.2.0'
-
+        
+    # get the code
+    - uses: actions/checkout@v2
+    
+        
     - name: Build c++ project
       uses: nicledomaS/cmake_build_action@v1
       with:

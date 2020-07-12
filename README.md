@@ -1,5 +1,6 @@
 # one-bit
 
+## Motivation
 This tool is aimed at people crafting with thread, in the more literal sense of the word. That is knitting, crocheting, stitching, you name it. 
 I've often stumbled upon the problem that I wanted to knit a pattern that had not yet been converted into an actual two-color stitch pattern, or that the gauge for my material wouldn't fit the pattern's aspect ratio.
 To solve the problem, I started painting over digital images, hoping the gauge would hold. I succeeded eventually, but one pattern could take up to five hours.
