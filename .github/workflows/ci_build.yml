@@ -7,12 +7,6 @@ jobs:
     runs-on: windows-latest
     steps: 
     # Install latest CMake.
-    - uses: lukka/get-cmake@latest
-    - uses: lukka/run-vcpkg@v3
-       inputs:
-        # commit id for exact vcpkg's version to fetch
-        vcpkgGitRef: ee17a685087a6886e5681e355d36cd784f0dd2c8
-        
     - task: Cache@2
       displayName: 'Cache vcpkg's artifacts'
       inputs:
@@ -20,12 +14,17 @@ jobs:
         path: '$(Build.BinariesDirectory)/vcpkg'
      
      - task: run-vcpkg@0
+       uses: lukka/run-vcpkg@v3
        displayName: 'Run vcpkg'
        inputs:
+        # commit id for exact vcpkg's version to fetch
+        vcpkgGitRef: ee17a685087a6886e5681e355d36cd784f0dd2c8
          vcpkgArguments: @$(Build.SourcesDirectory)/vcpkg_x64-linux.txt
          # Specify the exact commit id to fetch.
          vcpkgGitCommitId: $(vcpkgGitRef)
 
+     - uses: lukka/get-cmake@latest
+    
      - task: run-cmake@0
        displayName: 'Run CMake with CMakeLists.txt'
        inputs:
