@@ -7,30 +7,19 @@ jobs:
     runs-on: windows-latest
     steps: 
     # Install latest CMake.
-    - task: Cache@2
-      displayName: 'Cache vcpkg's artifacts'
-      inputs:
-        key: $(Build.SourcesDirectory)/vcpkg_x64-linux.txt | "$(vcpkgGitRef)" | "$(Agent.OS)"
-        path: '$(Build.BinariesDirectory)/vcpkg'
-     
-    - task: run-vcpkg@0
+    - uses: lukka/get-cmake@latest
+
+    - name: run vcpkg
       uses: lukka/run-vcpkg@v3
-      displayName: 'Run vcpkg'
+      with:
       inputs:
         # commit id for exact vcpkg's version to fetch
         vcpkgGitRef: ee17a685087a6886e5681e355d36cd784f0dd2c8
         vcpkgArguments: @$(Build.SourcesDirectory)/vcpkg_x64-linux.txt
         # Specify the exact commit id to fetch.
         vcpkgGitCommitId: $(vcpkgGitRef)
-    
-    - task: run-cmake@0
-      displayName: 'Run CMake with CMakeLists.txt'
-      uses: lukka/get-cmake@latest
-      inputs:
-        cmakeListsOrSettingsJson: 'CMakeLists'
-        cmakeListsTxtPath: CMakeLists.txt
-        useVcpkgToolchainFile: true'
 
+    # Install latest Qt
     - name: Install Qt
       uses: jurplel/install-qt-action@v2.6.3
 
@@ -39,8 +28,8 @@ jobs:
       with:
         opencv-version: '4.2.0'
         
-    - name: get code
-      uses: actions/checkout@v2
+    # get the code
+    - uses: actions/checkout@v2
     
         
     - name: Build c++ project
