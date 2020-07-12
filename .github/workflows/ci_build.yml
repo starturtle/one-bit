@@ -3,13 +3,15 @@ name: ci_build
 on: [push]
 
 jobs: 
-  build: 
+  setup_build:
     runs-on: windows-latest
     steps: 
     # Install latest CMake.
-    - uses: lukka/get-cmake@latest
+    - id: get_cmake
+      uses: lukka/get-cmake@latest
 
     - name: run vcpkg
+      id: vcpkg
       uses: lukka/run-vcpkg@v3
       with:
       inputs:
@@ -28,8 +30,10 @@ jobs:
       with:
         opencv-version: '4.2.0'
         
+  build: 
     # get the code
     - uses: actions/checkout@v2
+    needs: setup_build
     
         
     - name: Build c++ project
