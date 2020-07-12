@@ -13,29 +13,29 @@ jobs:
         # Exact vcpkg's version to fetch, commig id or tag name.
         vcpkgGitRef: ee17a685087a6886e5681e355d36cd784f0dd2c8
         
-  # Cache/restore the vcpkg's build artifacts.
-  - task: Cache@2
-    displayName: 'Cache vcpkg's artifacts'
-    inputs:
-      key: $(Build.SourcesDirectory)/vcpkg_x64-linux.txt | "$(vcpkgGitRef)" | "$(Agent.OS)"
-      path: '$(Build.BinariesDirectory)/vcpkg'
+    # Cache/restore the vcpkg's build artifacts.
+    - task: Cache@2
+      displayName: 'Cache vcpkg's artifacts'
+      inputs:
+        key: $(Build.SourcesDirectory)/vcpkg_x64-linux.txt | "$(vcpkgGitRef)" | "$(Agent.OS)"
+        path: '$(Build.BinariesDirectory)/vcpkg'
      
-   - task: run-vcpkg@0
-     displayName: 'Run vcpkg'
-     inputs:
-       vcpkgArguments: @$(Build.SourcesDirectory)/vcpkg_x64-linux.txt
-       # Specify the exact commit id to fetch.
-       vcpkgGitCommitId: $(vcpkgGitRef)
-       # URL to fetch vcpkg from (default is the official one).
-       vcpkgGitURL: http://my.vcpkg.fork.git/
+     - task: run-vcpkg@0
+       displayName: 'Run vcpkg'
+       inputs:
+         vcpkgArguments: @$(Build.SourcesDirectory)/vcpkg_x64-linux.txt
+         # Specify the exact commit id to fetch.
+         vcpkgGitCommitId: $(vcpkgGitRef)
+         # URL to fetch vcpkg from (default is the official one).
+         vcpkgGitURL: http://my.vcpkg.fork.git/
 
-   - task: run-cmake@0
-     displayName: 'Run CMake with CMakeSettings.json'
-     inputs:
-       cmakeListsOrSettingsJson: 'CMakeSettingsJson'
-       useVcpkgToolchainFile: true
-       # Build all configurations whose name starts with "Linux".
-       configurationRegexFilter: 'Linux.*'
+     - task: run-cmake@0
+       displayName: 'Run CMake with CMakeSettings.json'
+       inputs:
+         cmakeListsOrSettingsJson: 'CMakeSettingsJson'
+         useVcpkgToolchainFile: true
+         # Build all configurations whose name starts with "Linux".
+         configurationRegexFilter: 'Linux.*'
 
     # Install latest Qt
     - name: Install Qt
