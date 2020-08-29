@@ -27,7 +27,7 @@ void ResultImage::paint(QPainter* painter){
     painter->fillRect(bounds, Qt::green);
     return;
   }
-  QImage scaled = image.scaledToHeight(bounds.height());
+  QImage scaled = image.scaledToWidth(bounds.width());
   QPointF center = bounds.center() - scaled.rect().center();
 
   if(center.x() < 0) center.setX(0);
