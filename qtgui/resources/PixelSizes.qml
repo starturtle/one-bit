@@ -41,6 +41,13 @@ Pane {
   }
   property var resultWidth: resWidth.text
   property var resultHeight: resHeight.text
+  property var dimensions: resultWidth, resultHeight
   property var stitchRows: stRows.text
   property var stitchColumns: stCols.text
+  signal sizesChanged()
+
+  Component.onCompleted: {
+    resWidth.editingFinished.connect(sizesChanged)
+    resHeight.editingFinished.connect(sizesChanged)
+  }
 }

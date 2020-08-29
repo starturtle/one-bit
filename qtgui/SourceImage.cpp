@@ -34,11 +34,11 @@ void SourceImage::mouseMoveEvent(QMouseEvent* theEvent)
     QPointF br = { std::max(newTopLeft.x(), theEvent->localPos().x()), std::max(newTopLeft.y(), theEvent->localPos().y()) };
     newTopLeft = tl;
     newBottomRight = br;
-  }
-  abort = (theEvent->buttons() & Qt::MouseButton::RightButton);
-  if (! abort)
-  {
-    update();
+    abort = (theEvent->buttons() & Qt::MouseButton::RightButton);
+    if (! abort)
+    {
+      update();
+    }
   }
 }
 
@@ -71,6 +71,20 @@ void SourceImage::setPath(const QUrl& data)
   update();
 }
 
+void SourceImage::setSelectionWidth(const int& width)
+{
+  logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "new width: " << width << std::endl;
+  resultSize.setX(width);
+  update();
+}
+
+void SourceImage::setSelectionHeight(const int& height)
+{
+  logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "new height: " << height << std::endl;
+  resultSize.setY(height);
+  update();
+}
+
 void SourceImage::paint(QPainter* painter) {
   QRectF bounds = boundingRect();
   if (image.isNull())
@@ -87,6 +101,8 @@ void SourceImage::paint(QPainter* painter) {
     center.setY(0);
   setHeight(scaled.height());
   painter->drawImage(center, scaled);
+
+  normalizeLocations();
   painter->setPen(QColor(255, 0, 0));
   painter->drawRect(topLeft.x(), topLeft.y(), bottomRight.x()-topLeft.x(), bottomRight.y()-topLeft.y());
   painter->setPen(QColor(0, 255, 0));
@@ -96,4 +112,51 @@ void SourceImage::paint(QPainter* painter) {
 QImage SourceImage::data() const
 {
   return image;
+}
+
+int SourceImage::clipWidth() const
+{
+  return resultSize.x();
+}
+
+int SourceImage::clipHeight() const
+{
+  return resultSize.y();
+}
+
+void SourceImage::normalizeLocations()
+{
+  double definedAspectRatio = (1. * resultSize.y()) / resultSize.x();
+  int tempHeight = newBottomRight.y() - newTopLeft.y();
+  int tempWidth = newBottomRight.x() - newTopLeft.x();
+  double temporaryAspectRatio = (1. * tempHeight) / tempWidth;
+  int height = bottomRight.y() - topLeft.y();
+  int width = bottomRight.x() - topLeft.x();
+  double actualAspectRatio = (1. * height) / width;
+
+  if (std::abs(definedAspectRatio - temporaryAspectRatio) > aspectRatioMaxDelta)
+  {
+    // adjust the smaller one
+    if (tempWidth > tempHeight)
+    {
+      newBottomRight.setY(newTopLeft.y() + tempWidth * definedAspectRatio);
+    }
+    else
+    {
+      newBottomRight.setX(newTopLeft.x() + tempHeight / definedAspectRatio);
+    }
+  }
+
+  if (std::abs(definedAspectRatio - actualAspectRatio) > aspectRatioMaxDelta)
+  {
+    // adjust the smaller one
+    if (width > height)
+    {
+      bottomRight.setY(topLeft.y() + width * definedAspectRatio);
+    }
+    else
+    {
+      bottomRight.setX(topLeft.x() + height / definedAspectRatio);
+    }
+  }
 }

@@ -53,6 +53,13 @@ ApplicationWindow {
     PixelSizes {
       Layout.fillWidth: true
       id: pixelSizes
+      onSizesChanged:
+      {
+        console.log("size changed")
+        imagePreview.input.clipWidth = resultWidth
+        imagePreview.input.clipHeight = resultHeight
+        console.log("Setting preview dimensions to " + imagePreview.selectionWidth + "/" + imagePreview.selectionHeight)
+      }
     }
   
     PixelColors {
@@ -69,11 +76,17 @@ ApplicationWindow {
       {
         pixelator.setInputImage(imagePreview.sourcePath)
         pixelator.setOutputImage(imagePreview.storagePath)
+        dimensions = pixelSizes.dimensions
         pixelator.setStitchSizes(pixelSizes.resultWidth, pixelSizes.resultHeight, pixelSizes.stitchRows, pixelSizes.stitchColumns)
         pixelator.setStitchColors(pixelColors.colors)
         pixelator.run()
         imagePreview.outputImage.data = pixelator.result
       }
+    }
+    Component.onCompleted:
+    {
+      imagePreview.input.clipWidth = pixelSizes.resultWidth
+      imagePreview.input.clipHeight = pixelSizes.resultHeight
     }
   }
   QtPixelator {
