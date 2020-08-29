@@ -10,7 +10,6 @@ Frame {
     title: "Select File To Pixelate"
     onAccepted: {
       inputImage.path = inputFileGet.fileUrl
-      inputDataChanged
     }
   }
 
@@ -28,10 +27,6 @@ Frame {
       SplitView.minimumWidth: 200
       SplitView.preferredWidth: 400
       SplitView.maximumWidth: 600
-      onPathChanged:
-      {
-        inputDataChanged
-      }
     }
 
     ResultImage {
@@ -47,4 +42,9 @@ Frame {
   function getOutputFile() {outputFileGet.open()}
   property var input: inputImage
   signal inputDataChanged()
+
+  Component.onCompleted:
+  {
+    inputImage.pathChanged.connect(inputDataChanged)
+  }
 }

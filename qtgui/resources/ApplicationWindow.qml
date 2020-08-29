@@ -40,7 +40,6 @@ ApplicationWindow {
           pixelator.setStitchSizes(pixelSizes.resultWidth, pixelSizes.resultHeight, pixelSizes.stitchRows, pixelSizes.stitchColumns)
           pixelator.setStitchColors(pixelColors.colors)
           var result = pixelator.run()
-          imagePreview.outputImage.data = pixelator.result
         }
       }
     }
@@ -79,7 +78,6 @@ ApplicationWindow {
         pixelator.setStitchSizes(pixelSizes.resultWidth, pixelSizes.resultHeight, pixelSizes.stitchRows, pixelSizes.stitchColumns)
         pixelator.setStitchColors(pixelColors.colors)
         pixelator.run()
-        imagePreview.outputImage.data = pixelator.result
       }
     }
     Component.onCompleted:
@@ -90,5 +88,9 @@ ApplicationWindow {
   }
   QtPixelator {
     id: pixelator
+    onPixelationCreated:
+    {
+      imagePreview.outputImage.setData(pixelator.resultImage)
+    }
   }
 }

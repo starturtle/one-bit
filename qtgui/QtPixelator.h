@@ -9,7 +9,7 @@
 
 class QtPixelator : public QObject {
   Q_OBJECT
-  Q_PROPERTY(QImage result READ result)
+  Q_PROPERTY(QImage resultImage READ resultImage)
 public:
   explicit QtPixelator (QObject* in_parent = nullptr);
   Q_INVOKABLE int run();
@@ -18,7 +18,9 @@ public:
   Q_INVOKABLE int setStitchSizes(const int& in_width, const int& in_height, const int& in_rowsPerGauge, const int& in_stitchesPerGauge);
   Q_INVOKABLE int setStitchColors(const std::vector<QColor> in_colors);
 
-  const QImage& result() const;
+  QImage resultImage() const;
+signals:
+  void pixelationCreated();
 
 private:
   void recomputeSizes(const int& in_width, const int& in_height, const int& in_rowsPerGauge, const int& in_stitchesPerGauge);

@@ -12,6 +12,8 @@ namespace
   bool hasDuplicates(const std::vector<QColor>& colors);
   bool allValid(const std::vector<QColor>& colors);
   unsigned greatest_common_divisor(unsigned a, unsigned b);
+  unsigned least_common_multiple(unsigned a, unsigned b);
+  unsigned least_common_multiple(const std::vector<unsigned>& values);
   QColor minDiff(const QColor& in_source, const std::vector<QColor>& in_list);
 }
  
@@ -97,9 +99,9 @@ errors::Code QtPixelator::setStitchColors(const std::vector<QColor> in_colors)
   return errors::NONE;
 }
 
-const QImage& QtPixelator::result() const
+QImage QtPixelator::resultImage() const
 {
-  return imageBuffer;
+  return imageBuffer.copy();
 }
 
 void QtPixelator::recomputeSizes(const int& in_width, const int& in_height, const int& in_rowsPerGauge, const int& in_stitchesPerGauge)
@@ -109,11 +111,11 @@ void QtPixelator::recomputeSizes(const int& in_width, const int& in_height, cons
   // the first goal, therefore, must be to figure out how to int-ify "stixel" width and height from that aspect ratio, 
   // i.e. making them fractions of the least common multiple with the same aspect ratio as the actual stitch
   // the total size in stixels is therefore the number of stixels (as computed from the first equation) times the correspoding stixel size.
-  unsigned stixelGcd{ greatest_common_divisor(in_rowsPerGauge, in_stitchesPerGauge) };
-  stitchWidth = in_stitchesPerGauge / stixelGcd;
-  stitchHeight = in_rowsPerGauge / stixelGcd;
   stitchCount = (unsigned)(ceil((in_width / 10.) * in_stitchesPerGauge));
   rowCount = (unsigned)(ceil((in_height / 10.) * in_rowsPerGauge));
+  unsigned stixelLcm{ least_common_multiple(in_rowsPerGauge, in_stitchesPerGauge) };
+  stitchWidth = stixelLcm / in_stitchesPerGauge;
+  stitchHeight = stixelLcm / in_rowsPerGauge;
 } 
 
 QImage QtPixelator::pixelate()
@@ -199,6 +201,7 @@ namespace
     }
     return std::optional<unsigned>{};
   }
+  
   std::vector<unsigned> divisors(unsigned x)
   {
     std::vector<unsigned> divisors;
@@ -252,6 +255,54 @@ namespace
       }
       return search_greatest_common_divisor(b, a);
     }
+  }
+
+  unsigned least_common_multiple(unsigned a, unsigned b)
+  {
+    if (divides(b, a).has_value())
+    {
+      return b;
+    }
+    if (divides(a, b).has_value())
+    {
+      return a;
+    }
+    unsigned gcd = greatest_common_divisor(a, b);
+    return gcd * (a / gcd) * (b / gcd);
+  }
+
+  unsigned least_common_multiple(const std::vector<unsigned>& values)
+  {
+    if (values.size() < 3)
+    {
+      // break condition for recursion
+      if (values.empty())
+      {
+        return 0;
+      }
+      if (1 == values.size())
+      {
+        return values[0];
+      }
+      return least_common_multiple(values[0], values[1]);
+    }
+
+    // recursive call
+    std::vector<unsigned> next;
+    unsigned oneValue = 0;
+    for (auto value : values)
+    {
+      if (0 == oneValue)
+      {
+        oneValue = value;
+      }
+      else
+      {
+        next.push_back(least_common_multiple(oneValue, value));
+        oneValue = 0;
+      }
+    }
+    return least_common_multiple(next);
   }
 
   double colorDistance(const QColor& one, const QColor& other)
