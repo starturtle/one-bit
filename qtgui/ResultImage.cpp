@@ -8,15 +8,29 @@
 ResultImage::ResultImage(QQuickItem* parent)
 : QQuickPaintedItem()
 , image{}
-{}
+{
+  logging::LogStream::instance().setLogLevel(logging::Level::DEBUG);
+}
 
 void ResultImage::setData(const QImage& data)
 {
+  if (data.isNull())
+  {
+    logging::LogStream::instance().getLogStream(logging::Level::WARNING) << "Result Image empty!" << std::endl;
+  }
+  else
+  {
+    logging::LogStream::instance().getLogStream(logging::Level::INFO) << "Setting Result Image" << std::endl;
+  }
+  image = data;
   if (image.isNull())
   {
     logging::LogStream::instance().getLogStream(logging::Level::WARNING) << "Result Image empty!" << std::endl;
   }
-  image = data;
+  else
+  {
+    logging::LogStream::instance().getLogStream(logging::Level::INFO) << "Setting Result Image" << std::endl;
+  }
   update();
 }
 

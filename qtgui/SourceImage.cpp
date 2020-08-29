@@ -123,14 +123,9 @@ QImage SourceImage::data() const
 {
   auto returnValue{ image.copy(QRect(clipTopLeft, clipBottomRight)) };
   logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "Clipping to (" << clipTopLeft.x() << ", " << clipTopLeft.y() << ")/(" << clipBottomRight.x() << ", " << clipBottomRight.y() << ")" << std::endl;
-  const std::string outputQuality{ returnValue.isNull() ? "empty " : "" };
-  const std::string inputQuality{ image.isNull() ? "empty " : "" };
-  logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "Returning " << outputQuality << "file copied from " << inputQuality << "input" << std::endl;
-  const std::string filePathAndName = filePath.toLocalFile().toStdString();
-  const std::string ending = filePathAndName.substr(filePathAndName.length() - 4);
-  QString savePath = QString::fromStdString(filePathAndName.substr(0, filePathAndName.length() - 4) + "_temp" + ending);
-  logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "Store a copy to " << savePath.toStdString() << std::endl;
-  returnValue.save(savePath);
+  const std::string outputIsValid{ returnValue.isNull() ? "empty " : "" };
+  const std::string inputIsValid{ image.isNull() ? "empty " : "" };
+  logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "Returning " << outputIsValid << "file copied from " << inputIsValid << "input" << std::endl;
   return returnValue;
 }
 
