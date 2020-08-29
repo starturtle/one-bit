@@ -1,5 +1,6 @@
 #include "UiApplication.h"
 #include "QtPixelator.h"
+#include "SourceImage.h"
 #include "ResultImage.h"
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
@@ -22,6 +23,10 @@ namespace gui_mode
 
     // register actual pixelation execution object
     if (-1 == qmlRegisterType<QtPixelator>("starturtle.oneBit", 1, 0, "QtPixelator"))
+    {
+      return errors::QT_ERROR;
+    }
+    if (-1 == qmlRegisterType<SourceImage>("starturtle.oneBit", 1, 0, "SourceImage"))
     {
       return errors::QT_ERROR;
     }

@@ -9,8 +9,7 @@ Frame {
     id: inputFileGet
     title: "Select File To Pixelate"
     onAccepted: {
-      inputImage.source = inputFileGet.fileUrl
-      outputImage.source = inputFileGet.fileUrl
+      inputImage.path = inputFileGet.fileUrl
     }
   }
 
@@ -22,12 +21,16 @@ Frame {
 
   SplitView {
     anchors.fill: parent
-    Image {
+    SourceImage {
       id: inputImage
+      path: inputFileGet.fileUrl
       SplitView.minimumWidth: 200
       SplitView.preferredWidth: 400
       SplitView.maximumWidth: 600
-      source: inputFileGet.fileUrl
+      onPathChanged:
+      {
+        inputDataChanged
+      }
     }
 
     ResultImage {
@@ -39,7 +42,7 @@ Frame {
   }
   property var sourcePath: inputFileGet.fileUrl
   property var storagePath: outputFileGet.fileUrl
-  property Image result: outputImage.data
   function getInputFile() {inputFileGet.open()}
   function getOutputFile() {outputFileGet.open()}
+  signal inputDataChanged()
 }
