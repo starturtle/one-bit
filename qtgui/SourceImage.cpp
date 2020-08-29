@@ -8,6 +8,9 @@
 SourceImage::SourceImage(QQuickItem* parent)
 : QQuickPaintedItem()
 , filePath{}
+, resultSize{}
+, clipTopLeft{}
+, clipBottomRight{}
 , image{}
 , topLeft{ 0, 0 }
 , bottomRight{ 0, 0 }
@@ -54,6 +57,7 @@ void SourceImage::mouseReleaseEvent(QMouseEvent* theEvent)
     QPointF br = { std::max(newTopLeft.x(), theEvent->localPos().x()), std::max(newTopLeft.y(), theEvent->localPos().y()) };
     topLeft = tl;
     bottomRight = br;
+
     logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "MouseRelease: top left is " << topLeft.x() << ", " << topLeft.y() << ", bottom right is " << bottomRight.x() << ", " << bottomRight.y() << std::endl;
   }
   newTopLeft = { -1, -1 };
@@ -65,20 +69,26 @@ void SourceImage::setPath(const QUrl& data)
 {
   filePath = data;
   image.load(data.toLocalFile());
+  const std::string fileQuality{ image.isNull() ? "empty " : "" };
+  logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "Loaded a new " << fileQuality << "file" << std::endl;
   topLeft = { 0, 0 };
-  bottomRight = { 0, 0 };
+  QRectF bounds = boundingRect();
+  bottomRight = { bounds.width(), bounds.height() };
   newTopLeft = { -1, -1 };
+  newBottomRight = { -1, -1 };
+  clipTopLeft = { 0, 0 };
+  clipBottomRight = { image.width(), image.height() };
   update();
 }
 
-void SourceImage::setSelectionWidth(const int& width)
+void SourceImage::setResultWidth(const int& width)
 {
   logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "new width: " << width << std::endl;
   resultSize.setX(width);
   update();
 }
 
-void SourceImage::setSelectionHeight(const int& height)
+void SourceImage::setResultHeight(const int& height)
 {
   logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "new height: " << height << std::endl;
   resultSize.setY(height);
@@ -111,17 +121,38 @@ void SourceImage::paint(QPainter* painter) {
 
 QImage SourceImage::data() const
 {
-  return image;
+  auto returnValue{ image.copy(QRect(clipTopLeft, clipBottomRight)) };
+  logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "Clipping to (" << clipTopLeft.x() << ", " << clipTopLeft.y() << ")/(" << clipBottomRight.x() << ", " << clipBottomRight.y() << ")" << std::endl;
+  const std::string outputQuality{ returnValue.isNull() ? "empty " : "" };
+  const std::string inputQuality{ image.isNull() ? "empty " : "" };
+  logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "Returning " << outputQuality << "file copied from " << inputQuality << "input" << std::endl;
+  const std::string filePathAndName = filePath.toLocalFile().toStdString();
+  const std::string ending = filePathAndName.substr(filePathAndName.length() - 4);
+  QString savePath = QString::fromStdString(filePathAndName.substr(0, filePathAndName.length() - 4) + "_temp" + ending);
+  logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "Store a copy to " << savePath.toStdString() << std::endl;
+  returnValue.save(savePath);
+  return returnValue;
+
 }
 
 int SourceImage::clipWidth() const
 {
-  return resultSize.x();
+  return clipBottomRight.x() - clipTopLeft.x();
 }
 
 int SourceImage::clipHeight() const
 {
-  return resultSize.y();
+  return clipBottomRight.y() - clipTopLeft.y();
+}
+
+int SourceImage::clipX() const
+{
+  return clipTopLeft.x();
+}
+
+int SourceImage::clipY() const
+{
+  return clipTopLeft.y();
 }
 
 void SourceImage::normalizeLocations()
@@ -140,10 +171,12 @@ void SourceImage::normalizeLocations()
     if (tempWidth > tempHeight)
     {
       newBottomRight.setY(newTopLeft.y() + tempWidth * definedAspectRatio);
+      tempWidth = newBottomRight.x() - newTopLeft.x();
     }
     else
     {
       newBottomRight.setX(newTopLeft.x() + tempHeight / definedAspectRatio);
+      tempHeight = newBottomRight.y() - newTopLeft.y();
     }
   }
 
@@ -153,10 +186,17 @@ void SourceImage::normalizeLocations()
     if (width > height)
     {
       bottomRight.setY(topLeft.y() + width * definedAspectRatio);
+      height = bottomRight.y() - topLeft.y();
     }
     else
     {
       bottomRight.setX(topLeft.x() + height / definedAspectRatio);
+      width = bottomRight.x() - topLeft.x();
     }
   }
+
+  clipTopLeft.setX(topLeft.x() * this->width() / width);
+  clipTopLeft.setY(topLeft.y() * this->height() / height);
+  clipBottomRight.setX(bottomRight.x() * this->width() / width);
+  clipBottomRight.setY(bottomRight.y() * this->height() / height);
 }

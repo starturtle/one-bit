@@ -10,6 +10,7 @@ Frame {
     title: "Select File To Pixelate"
     onAccepted: {
       inputImage.path = inputFileGet.fileUrl
+      inputDataChanged
     }
   }
 

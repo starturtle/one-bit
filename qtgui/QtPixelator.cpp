@@ -31,27 +31,44 @@ errors::Code QtPixelator::run(){
   if (errors::NONE == result)
   {
     QImage colorMap = pixelate();
-    if (colorMap.isNull()) return errors::PIXELATION_ERROR;
-    if (! scalePixels(colorMap)) return errors::PAINT_ERROR;
-    if (! imageBuffer.save(storagePath.toLocalFile())) result = errors::WRITE_ERROR;
-    logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "File written" << std::endl;
+    if (colorMap.isNull())
+    {
+      logging::LogStream::instance().getLogStream(logging::Level::ERROR) << "Color map is NULL!" << std::endl;
+      return errors::PIXELATION_ERROR;
+    }
+    if (!scalePixels(colorMap))
+    {
+      logging::LogStream::instance().getLogStream(logging::Level::ERROR) << "Failed to scale for pixelation" << std::endl;
+      return errors::PAINT_ERROR;
+    }
+    if (imageBuffer.save(storagePath.toLocalFile()))
+    {
+      logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "File written" << std::endl;
+    }
+    else
+    {
+      logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "Could not write result" << std::endl;
+      result = errors::WRITE_ERROR;
+    }
+  }
+  else
+  {
+    logging::LogStream::instance().getLogStream(logging::Level::ERROR) << "Failed to verify input: " << result << std::endl;
   }
   return result;
 }
-errors::Code QtPixelator::setInputImage(const QUrl& in_url)
+errors::Code QtPixelator::setInputImage(const QImage& in_image)
 {
-  sourcePath = in_url;
-  logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "Load from " << in_url.toLocalFile().toStdString() << " on completion." << std::endl;
-  return (imageBuffer.load(in_url.toLocalFile()) ? errors::NONE : errors::WRONG_INPUT_FILE);
+  const std::string input{ in_image.isNull() ? " to NULL" : "" };
+  logging::LogStream::instance().getLogStream(logging::Level::ERROR) << "Setting input file" << input << std::endl;
+  imageBuffer = in_image;
+  return imageBuffer.isNull() ? errors::WRONG_INPUT_FILE : errors::NONE;
 }
 
 errors::Code QtPixelator::setOutputImage(const QUrl& in_url)
 {
   logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "Store to " << in_url.toLocalFile().toStdString() << " on completion." << std::endl;
-  if ((sourcePath == in_url) && !(!sourcePath.isEmpty()))
-  {
-    // TODO: show confirm dialog "are you sure you want to overwrite?"
-  }
+  
   storagePath = in_url;
   return storagePath.isEmpty() ? errors::WRONG_OUTPUT_FILE : errors::NONE;
 }

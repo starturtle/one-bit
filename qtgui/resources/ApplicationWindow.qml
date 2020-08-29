@@ -35,7 +35,7 @@ ApplicationWindow {
       MenuItem {
         text: qsTr("&Run")
         onTriggered: {
-          pixelator.setInputImage(imagePreview.sourcePath)
+          pixelator.setInputImage(imagePreview.input.imageBuffer)
           pixelator.setOutputImage(imagePreview.storagePath)
           pixelator.setStitchSizes(pixelSizes.resultWidth, pixelSizes.resultHeight, pixelSizes.stitchRows, pixelSizes.stitchColumns)
           pixelator.setStitchColors(pixelColors.colors)
@@ -55,10 +55,9 @@ ApplicationWindow {
       id: pixelSizes
       onSizesChanged:
       {
-        console.log("size changed")
-        imagePreview.input.clipWidth = resultWidth
-        imagePreview.input.clipHeight = resultHeight
-        console.log("Setting preview dimensions to " + imagePreview.selectionWidth + "/" + imagePreview.selectionHeight)
+        imagePreview.input.resultWidth = resultWidth
+        imagePreview.input.resultHeight = resultHeight
+        console.log("Set preview dimensions to " + imagePreview.input.resultWidth + "/" + imagePreview.input.resultHeight)
       }
     }
   
@@ -74,7 +73,7 @@ ApplicationWindow {
       id: imagePreview
       onInputDataChanged:
       {
-        pixelator.setInputImage(imagePreview.sourcePath)
+        pixelator.setInputImage(imagePreview.input.imageBuffer)
         pixelator.setOutputImage(imagePreview.storagePath)
         dimensions = pixelSizes.dimensions
         pixelator.setStitchSizes(pixelSizes.resultWidth, pixelSizes.resultHeight, pixelSizes.stitchRows, pixelSizes.stitchColumns)
@@ -85,8 +84,8 @@ ApplicationWindow {
     }
     Component.onCompleted:
     {
-      imagePreview.input.clipWidth = pixelSizes.resultWidth
-      imagePreview.input.clipHeight = pixelSizes.resultHeight
+      imagePreview.input.resultWidth = pixelSizes.resultWidth
+      imagePreview.input.resultHeight = pixelSizes.resultHeight
     }
   }
   QtPixelator {
