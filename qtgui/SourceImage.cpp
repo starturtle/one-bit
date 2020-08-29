@@ -132,7 +132,6 @@ QImage SourceImage::data() const
   logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "Store a copy to " << savePath.toStdString() << std::endl;
   returnValue.save(savePath);
   return returnValue;
-
 }
 
 int SourceImage::clipWidth() const
@@ -195,8 +194,9 @@ void SourceImage::normalizeLocations()
     }
   }
 
-  clipTopLeft.setX(topLeft.x() * this->width() / width);
-  clipTopLeft.setY(topLeft.y() * this->height() / height);
-  clipBottomRight.setX(bottomRight.x() * this->width() / width);
-  clipBottomRight.setY(bottomRight.y() * this->height() / height);
+  QRectF bounds = boundingRect();
+  clipTopLeft.setX(topLeft.x() * image.width() / bounds.width());
+  clipTopLeft.setY(topLeft.y() * image.height() / bounds.height());
+  clipBottomRight.setX(bottomRight.x() * image.width() / bounds.width());
+  clipBottomRight.setY(bottomRight.y() * image.height() / bounds.height());
 }
