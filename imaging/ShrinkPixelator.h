@@ -5,8 +5,8 @@ namespace imaging
 class ShrinkPixelator : public Pixelator
 {
 public:
-    ShrinkPixelator(const std::string& in_path);
-    bool to_pixels(int rows, int columns) final;
+  ShrinkPixelator(const std::string& in_path);
+  bool to_pixels(int width, int height, int gauge_stitches, int gauge_rows, const one_bit::CropRegion in_cropRegion) final;
 };
 }
 

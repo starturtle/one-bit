@@ -1,11 +1,9 @@
 find_package( OpenCV REQUIRED )
 add_library( imaging  
-    Pixelator.cpp
-    FloodFillPixelator.cpp
-    ShrinkPixelator.cpp
-    Pixelator.h
-    FloodFillPixelator.h
-    ShrinkPixelator.h
+  Pixelator.cpp
+  ShrinkPixelator.cpp
+  Pixelator.h
+  ShrinkPixelator.h
 )
-target_include_directories( imaging PUBLIC ${OpenCV_INCLUDE_DIRS} )
+target_include_directories( imaging PUBLIC ${OpenCV_INCLUDE_DIRS} ../utilities)
 target_link_libraries( imaging PUBLIC ${OpenCV_LIBS} )
