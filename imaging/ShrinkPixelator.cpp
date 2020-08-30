@@ -3,7 +3,7 @@
 
 namespace
 {
-  unsigned greatest_common_divisor(unsigned a, unsigned b);
+  unsigned least_common_multiple(unsigned a, unsigned b);
 }
 
 namespace imaging
@@ -17,9 +17,9 @@ namespace imaging
     int rows_backup = pictureBuffer.rows;
     int columns_backup = pictureBuffer.cols;
     double aspect_ratio_old = (rows_backup * 1.) / columns_backup; 
-    unsigned stixelGcd{ greatest_common_divisor(gauge_rows, gauge_stitches) };
-    unsigned stitchWidth = gauge_stitches / stixelGcd;
-    unsigned stitchHeight = gauge_rows / stixelGcd;
+    unsigned stixelLcm{ least_common_multiple(gauge_rows, gauge_stitches) };
+    unsigned stitchWidth = stixelLcm / gauge_stitches;
+    unsigned stitchHeight = stixelLcm / gauge_rows;
     unsigned stitchCount = (unsigned)(ceil((in_width / 10.) * gauge_stitches));
     unsigned rowCount = (unsigned)(ceil((in_height / 10.) * gauge_rows));
     double aspect_ratio_new = (in_height * 1.) / in_width;
@@ -137,5 +137,11 @@ namespace
       if (divides(a, b).has_value()) return b;
       return search_greatest_common_divisor(b, a);
     }
+  }
+
+  unsigned least_common_multiple(unsigned a, unsigned b)
+  {
+    unsigned gcd = greatest_common_divisor(a, b);
+    return a * b / gcd; //gcd * (a / gcd) * (b / gcd);
   }
 }

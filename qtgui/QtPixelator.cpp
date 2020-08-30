@@ -268,7 +268,7 @@ namespace
       return a;
     }
     unsigned gcd = greatest_common_divisor(a, b);
-    return gcd * (a / gcd) * (b / gcd);
+    return a * b / gcd;//gcd * (a / gcd) * (b / gcd);
   }
 
   unsigned least_common_multiple(const std::vector<unsigned>& values)
