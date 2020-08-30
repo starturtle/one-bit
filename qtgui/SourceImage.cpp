@@ -5,6 +5,11 @@
 #include <algorithm>
 #include <QMouseEvent>
 
+namespace
+{
+  void adjustToAspectRatio(const QPointF& topLeft, QPointF& bottomRight, double targetAspectRatio, const QRectF& bounds);
+}
+
 SourceImage::SourceImage(QQuickItem* parent)
 : QQuickPaintedItem()
 , filePath{}
@@ -152,46 +157,60 @@ int SourceImage::clipY() const
 void SourceImage::normalizeLocations()
 {
   double definedAspectRatio = (1. * resultSize.y()) / resultSize.x();
-  int tempHeight = newBottomRight.y() - newTopLeft.y();
-  int tempWidth = newBottomRight.x() - newTopLeft.x();
-  double temporaryAspectRatio = (1. * tempHeight) / tempWidth;
-  int height = bottomRight.y() - topLeft.y();
-  int width = bottomRight.x() - topLeft.x();
-  double actualAspectRatio = (1. * height) / width;
-
-  if (std::abs(definedAspectRatio - temporaryAspectRatio) > aspectRatioMaxDelta)
-  {
-    // adjust the smaller one
-    if (tempWidth > tempHeight)
-    {
-      newBottomRight.setY(newTopLeft.y() + tempWidth * definedAspectRatio);
-      tempWidth = newBottomRight.x() - newTopLeft.x();
-    }
-    else
-    {
-      newBottomRight.setX(newTopLeft.x() + tempHeight / definedAspectRatio);
-      tempHeight = newBottomRight.y() - newTopLeft.y();
-    }
-  }
-
-  if (std::abs(definedAspectRatio - actualAspectRatio) > aspectRatioMaxDelta)
-  {
-    // adjust the smaller one
-    if (width > height)
-    {
-      bottomRight.setY(topLeft.y() + width * definedAspectRatio);
-      height = bottomRight.y() - topLeft.y();
-    }
-    else
-    {
-      bottomRight.setX(topLeft.x() + height / definedAspectRatio);
-      width = bottomRight.x() - topLeft.x();
-    }
-  }
 
   QRectF bounds = boundingRect();
+
+  adjustToAspectRatio(topLeft, bottomRight, definedAspectRatio, bounds);
+  adjustToAspectRatio(newTopLeft, newBottomRight, definedAspectRatio, bounds);
+
   clipTopLeft.setX(topLeft.x() * image.width() / bounds.width());
   clipTopLeft.setY(topLeft.y() * image.height() / bounds.height());
   clipBottomRight.setX(bottomRight.x() * image.width() / bounds.width());
   clipBottomRight.setY(bottomRight.y() * image.height() / bounds.height());
+}
+
+namespace
+{
+  void adjustToAspectRatio(const QPointF& topLeft, QPointF& bottomRight, double targetAspectRatio, const QRectF& bounds)
+  {
+    double actualHeight = bottomRight.y() - topLeft.y();
+    double actualWidth = bottomRight.x() - topLeft.x();
+    double actualAspectRatio =  actualHeight / actualWidth;
+    static const double aspectRatioMaxDelta{ 0.02 };
+
+    if (std::abs(targetAspectRatio - actualAspectRatio) < aspectRatioMaxDelta)
+    {
+      return;
+    }
+
+    // adjust the smaller one
+    if (actualWidth > actualHeight)
+    {
+      qreal newBottomRightY{ topLeft.y() + actualWidth * targetAspectRatio };
+      if (newBottomRightY < bounds.height())
+      {
+        bottomRight.setY(newBottomRightY);
+      }
+      else
+      {
+        bottomRight.setY(bounds.height() - 1);
+        actualHeight = bottomRight.y() - topLeft.y();
+        bottomRight.setX(topLeft.x() + actualHeight / targetAspectRatio);
+      }
+    }
+    else
+    {
+      qreal newBottomRightX{ topLeft.x() + actualHeight / targetAspectRatio };
+      if (newBottomRightX < bounds.width())
+      {
+        bottomRight.setX(newBottomRightX);
+      }
+      else
+      {
+        bottomRight.setX(bounds.width() - 1);
+        actualWidth = bottomRight.x() - topLeft.x();
+        bottomRight.setY(topLeft.y() + actualWidth / targetAspectRatio);
+      }
+    }
+  }
 }
