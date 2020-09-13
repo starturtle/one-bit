@@ -27,6 +27,7 @@ Frame {
       SplitView.minimumWidth: 200
       SplitView.preferredWidth: 400
       SplitView.maximumWidth: 600
+
     }
 
     ResultImage {
@@ -41,10 +42,13 @@ Frame {
   function getInputFile() {inputFileGet.open()}
   function getOutputFile() {outputFileGet.open()}
   property var input: inputImage
+  property string clippingInfo: inputImage.clippingInfo
   signal inputDataChanged()
+  signal clippingSizeChanged()
 
   Component.onCompleted:
   {
     inputImage.pathChanged.connect(inputDataChanged)
+    inputImage.newClipping.connect(clippingSizeChanged)
   }
 }

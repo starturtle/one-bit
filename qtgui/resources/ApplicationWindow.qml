@@ -79,6 +79,10 @@ ApplicationWindow {
         pixelator.setStitchColors(pixelColors.colors)
         pixelator.run()
       }
+      onClippingSizeChanged:
+      {
+        footer.update
+      }
     }
     Component.onCompleted:
     {
@@ -91,6 +95,12 @@ ApplicationWindow {
     onPixelationCreated:
     {
       imagePreview.outputImage.setData(pixelator.resultImage)
+    }
+  }
+  footer: ToolBar {
+    RowLayout {
+      anchors.fill: parent
+      Label { text: imagePreview.clippingInfo }
     }
   }
 }

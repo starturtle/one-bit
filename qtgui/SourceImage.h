@@ -15,6 +15,7 @@ class SourceImage : public QQuickPaintedItem
     Q_PROPERTY(int clipY READ clipY)
     Q_PROPERTY(int clipWidth READ clipWidth)
     Q_PROPERTY(int clipHeight READ clipHeight)
+    Q_PROPERTY(QString clippingInfo READ clippingInfo NOTIFY newClipping)
 public:
   SourceImage(QQuickItem* parent = nullptr);
   Q_INVOKABLE void setPath(const QUrl& path);
@@ -26,12 +27,14 @@ public:
   int clipHeight() const;
   int clipX() const;
   int clipY() const;
+  QString clippingInfo() const;
   
 signals:
   void dataChanged();
   void pathChanged();
   void widthChanged();
   void heightChanged();
+  void newClipping();
 
 protected:
   void mousePressEvent(QMouseEvent* theEvent) final;
@@ -45,6 +48,8 @@ private:
   QPoint resultSize;
   QPoint clipTopLeft;
   QPoint clipBottomRight;
+  QPoint newClipTopLeft;
+  QPoint newClipBottomRight;
   QImage image;
   QPointF topLeft;
   QPointF bottomRight;

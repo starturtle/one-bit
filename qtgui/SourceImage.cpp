@@ -10,6 +10,7 @@ namespace
   qreal boundedMin(qreal val1, qreal val2, qreal boundary);
   qreal boundedMax(qreal val1, qreal val2, qreal boundary);
   void adjustToAspectRatio(const QPointF& topLeft, QPointF& bottomRight, double targetAspectRatio, const QRectF& bounds);
+  QString pointsToClippingInfo(const QPointF& topLeft, const QPointF& bottomRight);
 }
 
 SourceImage::SourceImage(QQuickItem* parent)
@@ -162,6 +163,15 @@ int SourceImage::clipY() const
   return clipTopLeft.y();
 }
 
+QString SourceImage::clippingInfo() const
+{
+  if (newStartingPoint.x() >= 0)
+  {
+    return pointsToClippingInfo(newClipTopLeft, newClipBottomRight);
+  }
+  return pointsToClippingInfo(clipTopLeft, clipBottomRight);
+}
+
 void SourceImage::normalizeLocations()
 {
   double definedAspectRatio = (1. * resultSize.y()) / resultSize.x();
@@ -175,6 +185,13 @@ void SourceImage::normalizeLocations()
   clipTopLeft.setY(topLeft.y() * image.height() / bounds.height());
   clipBottomRight.setX(bottomRight.x() * image.width() / bounds.width());
   clipBottomRight.setY(bottomRight.y() * image.height() / bounds.height());
+
+  newClipTopLeft.setX(newTopLeft.x() * image.width() / bounds.width());
+  newClipTopLeft.setY(newTopLeft.y() * image.height() / bounds.height());
+  newClipBottomRight.setX(newBottomRight.x() * image.width() / bounds.width());
+  newClipBottomRight.setY(newBottomRight.y() * image.height() / bounds.height());
+
+  newClipping();
 }
 
 namespace
@@ -228,5 +245,9 @@ namespace
         bottomRight.setY(topLeft.y() + actualWidth / targetAspectRatio);
       }
     }
+  }
+  QString pointsToClippingInfo(const QPointF& topLeft, const QPointF& bottomRight)
+  {
+    return QString("Use " + QString::number(topLeft.x()) + ", " + QString::number(topLeft.y()) + " (w:" + QString::number(bottomRight.x() - topLeft.x()) + ", h:" + QString::number(bottomRight.y() - topLeft.y()) + ")");
   }
 }
