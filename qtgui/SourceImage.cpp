@@ -5,6 +5,15 @@
 #include <algorithm>
 #include <QMouseEvent>
 
+namespace
+{
+  qreal boundedMin(qreal val1, qreal val2, qreal boundary);
+  qreal boundedMax(qreal val1, qreal val2, qreal boundary);
+  void adjustToAspectRatio(const QPointF& topLeft, QPointF& bottomRight, double targetAspectRatio, const QRectF& bounds);
+  QString pointsToClippingInfo(const QPointF& topLeft, const QPointF& bottomRight);
+  void scalePoint(const QPointF& source, QPoint& target, qreal scalingFactor);
+}
+
 SourceImage::SourceImage(QQuickItem* parent)
 : QQuickPaintedItem()
 , filePath{}
@@ -14,18 +23,18 @@ SourceImage::SourceImage(QQuickItem* parent)
 , image{}
 , topLeft{ 0, 0 }
 , bottomRight{ 0, 0 }
+, newStartingPoint{ -1, -1 }
 , newTopLeft{ -1, -1 }
 , newBottomRight{ -1, -1 }
 , abort{ false }
 {
-  logging::LogStream::instance().setLogLevel(logging::Level::DEBUG);
+  logging::LogStream::instance().setLogLevel(logging::Level::INFO);
   setAcceptedMouseButtons(Qt::AllButtons);
 }
 
 void SourceImage::mousePressEvent(QMouseEvent* theEvent)
 {
-  newTopLeft = { theEvent->localPos().x(), theEvent->localPos().y() };
-  newBottomRight = newTopLeft;
+  newStartingPoint = { theEvent->localPos().x(), theEvent->localPos().y() };
   logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "MousePress: top left is " << newTopLeft.x() << ", " << newTopLeft.y() << std::endl;
 }
 
@@ -33,13 +42,16 @@ void SourceImage::mouseMoveEvent(QMouseEvent* theEvent)
 {
   if (theEvent->buttons() & Qt::MouseButton::LeftButton)
   {
-    QPointF tl = { std::min(newTopLeft.x(), theEvent->localPos().x()), std::min(newTopLeft.y(), theEvent->localPos().y()) };
-    QPointF br = { std::max(newTopLeft.x(), theEvent->localPos().x()), std::max(newTopLeft.y(), theEvent->localPos().y()) };
+    QRectF bounds = boundingRect();
+    logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "MouseMove: boundingRect " << bounds.width() << ", " << bounds.height() << std::endl;
+    QPointF tl = { boundedMin(newStartingPoint.x(), theEvent->localPos().x(), 0), boundedMin(newStartingPoint.y(), theEvent->localPos().y(), 0) };
+    QPointF br = { boundedMax(newStartingPoint.x(), theEvent->localPos().x(), bounds.width() - 1), boundedMax(newStartingPoint.y(), theEvent->localPos().y(), bounds.height() - 1) };
     newTopLeft = tl;
     newBottomRight = br;
     abort = (theEvent->buttons() & Qt::MouseButton::RightButton);
     if (! abort)
     {
+      logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "MouseMove: top left is " << newTopLeft.x() << ", " << newTopLeft.y() << ", bottom right is " << newBottomRight.x() << ", " << newBottomRight.y() << std::endl;
       update();
     }
   }
@@ -49,17 +61,19 @@ void SourceImage::mouseReleaseEvent(QMouseEvent* theEvent)
 {
   if (abort)
   {
-    logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "MouseRelease (aborted)" << std::endl;
+    logging::LogStream::instance().getLogStream(logging::Level::INFO) << "MouseRelease (aborted)" << std::endl;
   }
   else
   {
-    QPointF tl = { std::min(newTopLeft.x(), theEvent->localPos().x()), std::min(newTopLeft.y(), theEvent->localPos().y()) };
-    QPointF br = { std::max(newTopLeft.x(), theEvent->localPos().x()), std::max(newTopLeft.y(), theEvent->localPos().y()) };
+    QRectF bounds = boundingRect();
+    QPointF tl = { boundedMin(newStartingPoint.x(), theEvent->localPos().x(), 0), boundedMin(newStartingPoint.y(), theEvent->localPos().y(), 0) };
+    QPointF br = { boundedMax(newStartingPoint.x(), theEvent->localPos().x(), bounds.width() - 1), boundedMax(newStartingPoint.y(), theEvent->localPos().y(), bounds.height()) };
     topLeft = tl;
     bottomRight = br;
 
-    logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "MouseRelease: top left is " << topLeft.x() << ", " << topLeft.y() << ", bottom right is " << bottomRight.x() << ", " << bottomRight.y() << std::endl;
+    logging::LogStream::instance().getLogStream(logging::Level::INFO) << "MouseRelease: top left is " << topLeft.x() << ", " << topLeft.y() << ", bottom right is " << bottomRight.x() << ", " << bottomRight.y() << std::endl;
   }
+  newStartingPoint = { -1, -1 };
   newTopLeft = { -1, -1 };
   newBottomRight = { -1, -1 };
   update();
@@ -70,27 +84,28 @@ void SourceImage::setPath(const QUrl& data)
   filePath = data;
   image.load(data.toLocalFile());
   const std::string fileQuality{ image.isNull() ? "empty " : "" };
-  logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "Loaded a new " << fileQuality << "file" << std::endl;
+  logging::LogStream::instance().getLogStream(logging::Level::INFO) << "Loaded a new " << fileQuality << "file" << std::endl;
   topLeft = { 0, 0 };
   QRectF bounds = boundingRect();
-  bottomRight = { bounds.width(), bounds.height() };
+  bottomRight = { bounds.width() - 1, bounds.height() - 1 };
   newTopLeft = { -1, -1 };
   newBottomRight = { -1, -1 };
   clipTopLeft = { 0, 0 };
-  clipBottomRight = { image.width(), image.height() };
+  clipBottomRight = { image.width() - 1, image.height() - 1 };
   update();
+  logging::LogStream::instance().getLogStream(logging::Level::INFO) << "File Size is " << image.width() << "x" << image.height() << std::endl;
 }
 
 void SourceImage::setResultWidth(const int& width)
 {
-  logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "new width: " << width << std::endl;
+  logging::LogStream::instance().getLogStream(logging::Level::INFO) << "new width: " << width << std::endl;
   resultSize.setX(width);
   update();
 }
 
 void SourceImage::setResultHeight(const int& height)
 {
-  logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "new height: " << height << std::endl;
+  logging::LogStream::instance().getLogStream(logging::Level::INFO) << "new height: " << height << std::endl;
   resultSize.setY(height);
   update();
 }
@@ -149,49 +164,96 @@ int SourceImage::clipY() const
   return clipTopLeft.y();
 }
 
+QString SourceImage::clippingInfo() const
+{
+  if (newStartingPoint.x() >= 0)
+  {
+    return pointsToClippingInfo(newClipTopLeft, newClipBottomRight);
+  }
+  return pointsToClippingInfo(clipTopLeft, clipBottomRight);
+}
+
 void SourceImage::normalizeLocations()
 {
   double definedAspectRatio = (1. * resultSize.y()) / resultSize.x();
-  int tempHeight = newBottomRight.y() - newTopLeft.y();
-  int tempWidth = newBottomRight.x() - newTopLeft.x();
-  double temporaryAspectRatio = (1. * tempHeight) / tempWidth;
-  int height = bottomRight.y() - topLeft.y();
-  int width = bottomRight.x() - topLeft.x();
-  double actualAspectRatio = (1. * height) / width;
-
-  if (std::abs(definedAspectRatio - temporaryAspectRatio) > aspectRatioMaxDelta)
-  {
-    // adjust the smaller one
-    if (tempWidth > tempHeight)
-    {
-      newBottomRight.setY(newTopLeft.y() + tempWidth * definedAspectRatio);
-      tempWidth = newBottomRight.x() - newTopLeft.x();
-    }
-    else
-    {
-      newBottomRight.setX(newTopLeft.x() + tempHeight / definedAspectRatio);
-      tempHeight = newBottomRight.y() - newTopLeft.y();
-    }
-  }
-
-  if (std::abs(definedAspectRatio - actualAspectRatio) > aspectRatioMaxDelta)
-  {
-    // adjust the smaller one
-    if (width > height)
-    {
-      bottomRight.setY(topLeft.y() + width * definedAspectRatio);
-      height = bottomRight.y() - topLeft.y();
-    }
-    else
-    {
-      bottomRight.setX(topLeft.x() + height / definedAspectRatio);
-      width = bottomRight.x() - topLeft.x();
-    }
-  }
 
   QRectF bounds = boundingRect();
-  clipTopLeft.setX(topLeft.x() * image.width() / bounds.width());
-  clipTopLeft.setY(topLeft.y() * image.height() / bounds.height());
-  clipBottomRight.setX(bottomRight.x() * image.width() / bounds.width());
-  clipBottomRight.setY(bottomRight.y() * image.height() / bounds.height());
+
+  adjustToAspectRatio(topLeft, bottomRight, definedAspectRatio, bounds);
+  adjustToAspectRatio(newTopLeft, newBottomRight, definedAspectRatio, bounds);
+
+  qreal scaling{ image.width() / bounds.width() };
+  scalePoint(topLeft, clipTopLeft, scaling);
+  scalePoint(bottomRight, clipBottomRight, scaling);
+  scalePoint(newTopLeft, newClipTopLeft, scaling);
+  scalePoint(newBottomRight, newClipBottomRight, scaling);
+
+  newClipping();
+}
+
+namespace
+{
+  qreal boundedMin(qreal val1, qreal val2, qreal boundary)
+  {
+    return std::max(std::min(val1, val2), boundary);
+  }
+  
+  qreal boundedMax(qreal val1, qreal val2, qreal boundary)
+  {
+    return std::min(std::max(val1, val2), boundary);
+  }
+
+  void adjustToAspectRatio(const QPointF& topLeft, QPointF& bottomRight, double targetAspectRatio, const QRectF& bounds)
+  {
+    double actualHeight = bottomRight.y() - topLeft.y();
+    double actualWidth = bottomRight.x() - topLeft.x();
+    double actualAspectRatio =  actualHeight / actualWidth;
+    static const double aspectRatioMaxDelta{ 0.02 };
+
+    if (std::abs(targetAspectRatio - actualAspectRatio) < aspectRatioMaxDelta)
+    {
+      return;
+    }
+
+    // adjust the smaller one
+    if (actualWidth > actualHeight)
+    {
+      qreal newBottomRightY{ topLeft.y() + actualWidth * targetAspectRatio };
+      if (newBottomRightY < bounds.height())
+      {
+        bottomRight.setY(newBottomRightY);
+      }
+      else
+      {
+        bottomRight.setY(bounds.height() - 1);
+        actualHeight = bottomRight.y() - topLeft.y();
+        bottomRight.setX(topLeft.x() + actualHeight / targetAspectRatio);
+      }
+    }
+    else
+    {
+      qreal newBottomRightX{ topLeft.x() + actualHeight / targetAspectRatio };
+      if (newBottomRightX < bounds.width())
+      {
+        bottomRight.setX(newBottomRightX);
+      }
+      else
+      {
+        bottomRight.setX(bounds.width() - 1);
+        actualWidth = bottomRight.x() - topLeft.x();
+        bottomRight.setY(topLeft.y() + actualWidth / targetAspectRatio);
+      }
+    }
+  }
+  
+  QString pointsToClippingInfo(const QPointF& topLeft, const QPointF& bottomRight)
+  {
+    return QString("Use " + QString::number(topLeft.x()) + ", " + QString::number(topLeft.y()) + " (w:" + QString::number(bottomRight.x() - topLeft.x()) + ", h:" + QString::number(bottomRight.y() - topLeft.y()) + ")");
+  }
+
+  void scalePoint(const QPointF& source, QPoint& target, qreal scalingFactor)
+  {
+    target.setX(source.x() * scalingFactor);
+    target.setY(source.y() * scalingFactor);
+  }
 }
