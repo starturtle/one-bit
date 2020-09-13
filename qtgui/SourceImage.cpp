@@ -11,6 +11,7 @@ namespace
   qreal boundedMax(qreal val1, qreal val2, qreal boundary);
   void adjustToAspectRatio(const QPointF& topLeft, QPointF& bottomRight, double targetAspectRatio, const QRectF& bounds);
   QString pointsToClippingInfo(const QPointF& topLeft, const QPointF& bottomRight);
+  void scalePoint(const QPointF& source, QPoint& target, qreal scalingFactor);
 }
 
 SourceImage::SourceImage(QQuickItem* parent)
@@ -27,7 +28,7 @@ SourceImage::SourceImage(QQuickItem* parent)
 , newBottomRight{ -1, -1 }
 , abort{ false }
 {
-  logging::LogStream::instance().setLogLevel(logging::Level::DEBUG);
+  logging::LogStream::instance().setLogLevel(logging::Level::INFO);
   setAcceptedMouseButtons(Qt::AllButtons);
 }
 
@@ -60,7 +61,7 @@ void SourceImage::mouseReleaseEvent(QMouseEvent* theEvent)
 {
   if (abort)
   {
-    logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "MouseRelease (aborted)" << std::endl;
+    logging::LogStream::instance().getLogStream(logging::Level::INFO) << "MouseRelease (aborted)" << std::endl;
   }
   else
   {
@@ -70,7 +71,7 @@ void SourceImage::mouseReleaseEvent(QMouseEvent* theEvent)
     topLeft = tl;
     bottomRight = br;
 
-    logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "MouseRelease: top left is " << topLeft.x() << ", " << topLeft.y() << ", bottom right is " << bottomRight.x() << ", " << bottomRight.y() << std::endl;
+    logging::LogStream::instance().getLogStream(logging::Level::INFO) << "MouseRelease: top left is " << topLeft.x() << ", " << topLeft.y() << ", bottom right is " << bottomRight.x() << ", " << bottomRight.y() << std::endl;
   }
   newStartingPoint = { -1, -1 };
   newTopLeft = { -1, -1 };
@@ -83,28 +84,28 @@ void SourceImage::setPath(const QUrl& data)
   filePath = data;
   image.load(data.toLocalFile());
   const std::string fileQuality{ image.isNull() ? "empty " : "" };
-  logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "Loaded a new " << fileQuality << "file" << std::endl;
+  logging::LogStream::instance().getLogStream(logging::Level::INFO) << "Loaded a new " << fileQuality << "file" << std::endl;
   topLeft = { 0, 0 };
   QRectF bounds = boundingRect();
-  bottomRight = { bounds.width(), bounds.height() };
+  bottomRight = { bounds.width() - 1, bounds.height() - 1 };
   newTopLeft = { -1, -1 };
   newBottomRight = { -1, -1 };
   clipTopLeft = { 0, 0 };
-  clipBottomRight = { image.width(), image.height() };
+  clipBottomRight = { image.width() - 1, image.height() - 1 };
   update();
-  logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "File Size is " << image.width() << "x" << image.height() << std::endl;
+  logging::LogStream::instance().getLogStream(logging::Level::INFO) << "File Size is " << image.width() << "x" << image.height() << std::endl;
 }
 
 void SourceImage::setResultWidth(const int& width)
 {
-  logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "new width: " << width << std::endl;
+  logging::LogStream::instance().getLogStream(logging::Level::INFO) << "new width: " << width << std::endl;
   resultSize.setX(width);
   update();
 }
 
 void SourceImage::setResultHeight(const int& height)
 {
-  logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "new height: " << height << std::endl;
+  logging::LogStream::instance().getLogStream(logging::Level::INFO) << "new height: " << height << std::endl;
   resultSize.setY(height);
   update();
 }
@@ -181,15 +182,11 @@ void SourceImage::normalizeLocations()
   adjustToAspectRatio(topLeft, bottomRight, definedAspectRatio, bounds);
   adjustToAspectRatio(newTopLeft, newBottomRight, definedAspectRatio, bounds);
 
-  clipTopLeft.setX(topLeft.x() * image.width() / bounds.width());
-  clipTopLeft.setY(topLeft.y() * image.height() / bounds.height());
-  clipBottomRight.setX(bottomRight.x() * image.width() / bounds.width());
-  clipBottomRight.setY(bottomRight.y() * image.height() / bounds.height());
-
-  newClipTopLeft.setX(newTopLeft.x() * image.width() / bounds.width());
-  newClipTopLeft.setY(newTopLeft.y() * image.height() / bounds.height());
-  newClipBottomRight.setX(newBottomRight.x() * image.width() / bounds.width());
-  newClipBottomRight.setY(newBottomRight.y() * image.height() / bounds.height());
+  qreal scaling{ image.width() / bounds.width() };
+  scalePoint(topLeft, clipTopLeft, scaling);
+  scalePoint(bottomRight, clipBottomRight, scaling);
+  scalePoint(newTopLeft, newClipTopLeft, scaling);
+  scalePoint(newBottomRight, newClipBottomRight, scaling);
 
   newClipping();
 }
@@ -200,10 +197,12 @@ namespace
   {
     return std::max(std::min(val1, val2), boundary);
   }
+  
   qreal boundedMax(qreal val1, qreal val2, qreal boundary)
   {
     return std::min(std::max(val1, val2), boundary);
   }
+
   void adjustToAspectRatio(const QPointF& topLeft, QPointF& bottomRight, double targetAspectRatio, const QRectF& bounds)
   {
     double actualHeight = bottomRight.y() - topLeft.y();
@@ -246,8 +245,15 @@ namespace
       }
     }
   }
+  
   QString pointsToClippingInfo(const QPointF& topLeft, const QPointF& bottomRight)
   {
     return QString("Use " + QString::number(topLeft.x()) + ", " + QString::number(topLeft.y()) + " (w:" + QString::number(bottomRight.x() - topLeft.x()) + ", h:" + QString::number(bottomRight.y() - topLeft.y()) + ")");
+  }
+
+  void scalePoint(const QPointF& source, QPoint& target, qreal scalingFactor)
+  {
+    target.setX(source.x() * scalingFactor);
+    target.setY(source.y() * scalingFactor);
   }
 }

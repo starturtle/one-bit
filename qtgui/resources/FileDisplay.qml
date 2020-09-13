@@ -27,7 +27,6 @@ Frame {
       SplitView.minimumWidth: 200
       SplitView.preferredWidth: 400
       SplitView.maximumWidth: 600
-
     }
 
     ResultImage {
