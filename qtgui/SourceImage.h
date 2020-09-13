@@ -48,6 +48,7 @@ private:
   QImage image;
   QPointF topLeft;
   QPointF bottomRight;
+  QPointF newStartingPoint;
   QPointF newTopLeft;
   QPointF newBottomRight;
   bool abort;

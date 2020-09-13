@@ -7,6 +7,8 @@
 
 namespace
 {
+  qreal boundedMin(qreal val1, qreal val2, qreal boundary);
+  qreal boundedMax(qreal val1, qreal val2, qreal boundary);
   void adjustToAspectRatio(const QPointF& topLeft, QPointF& bottomRight, double targetAspectRatio, const QRectF& bounds);
 }
 
@@ -19,6 +21,7 @@ SourceImage::SourceImage(QQuickItem* parent)
 , image{}
 , topLeft{ 0, 0 }
 , bottomRight{ 0, 0 }
+, newStartingPoint{ -1, -1 }
 , newTopLeft{ -1, -1 }
 , newBottomRight{ -1, -1 }
 , abort{ false }
@@ -29,8 +32,7 @@ SourceImage::SourceImage(QQuickItem* parent)
 
 void SourceImage::mousePressEvent(QMouseEvent* theEvent)
 {
-  newTopLeft = { theEvent->localPos().x(), theEvent->localPos().y() };
-  newBottomRight = newTopLeft;
+  newStartingPoint = { theEvent->localPos().x(), theEvent->localPos().y() };
   logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "MousePress: top left is " << newTopLeft.x() << ", " << newTopLeft.y() << std::endl;
 }
 
@@ -38,13 +40,16 @@ void SourceImage::mouseMoveEvent(QMouseEvent* theEvent)
 {
   if (theEvent->buttons() & Qt::MouseButton::LeftButton)
   {
-    QPointF tl = { std::min(newTopLeft.x(), theEvent->localPos().x()), std::min(newTopLeft.y(), theEvent->localPos().y()) };
-    QPointF br = { std::max(newTopLeft.x(), theEvent->localPos().x()), std::max(newTopLeft.y(), theEvent->localPos().y()) };
+    QRectF bounds = boundingRect();
+    logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "MouseMove: boundingRect " << bounds.width() << ", " << bounds.height() << std::endl;
+    QPointF tl = { boundedMin(newStartingPoint.x(), theEvent->localPos().x(), 0), boundedMin(newStartingPoint.y(), theEvent->localPos().y(), 0) };
+    QPointF br = { boundedMax(newStartingPoint.x(), theEvent->localPos().x(), bounds.width() - 1), boundedMax(newStartingPoint.y(), theEvent->localPos().y(), bounds.height() - 1) };
     newTopLeft = tl;
     newBottomRight = br;
     abort = (theEvent->buttons() & Qt::MouseButton::RightButton);
     if (! abort)
     {
+      logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "MouseMove: top left is " << newTopLeft.x() << ", " << newTopLeft.y() << ", bottom right is " << newBottomRight.x() << ", " << newBottomRight.y() << std::endl;
       update();
     }
   }
@@ -58,13 +63,15 @@ void SourceImage::mouseReleaseEvent(QMouseEvent* theEvent)
   }
   else
   {
-    QPointF tl = { std::min(newTopLeft.x(), theEvent->localPos().x()), std::min(newTopLeft.y(), theEvent->localPos().y()) };
-    QPointF br = { std::max(newTopLeft.x(), theEvent->localPos().x()), std::max(newTopLeft.y(), theEvent->localPos().y()) };
+    QRectF bounds = boundingRect();
+    QPointF tl = { boundedMin(newStartingPoint.x(), theEvent->localPos().x(), 0), boundedMin(newStartingPoint.y(), theEvent->localPos().y(), 0) };
+    QPointF br = { boundedMax(newStartingPoint.x(), theEvent->localPos().x(), bounds.width() - 1), boundedMax(newStartingPoint.y(), theEvent->localPos().y(), bounds.height()) };
     topLeft = tl;
     bottomRight = br;
 
     logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "MouseRelease: top left is " << topLeft.x() << ", " << topLeft.y() << ", bottom right is " << bottomRight.x() << ", " << bottomRight.y() << std::endl;
   }
+  newStartingPoint = { -1, -1 };
   newTopLeft = { -1, -1 };
   newBottomRight = { -1, -1 };
   update();
@@ -84,6 +91,7 @@ void SourceImage::setPath(const QUrl& data)
   clipTopLeft = { 0, 0 };
   clipBottomRight = { image.width(), image.height() };
   update();
+  logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "File Size is " << image.width() << "x" << image.height() << std::endl;
 }
 
 void SourceImage::setResultWidth(const int& width)
@@ -171,6 +179,14 @@ void SourceImage::normalizeLocations()
 
 namespace
 {
+  qreal boundedMin(qreal val1, qreal val2, qreal boundary)
+  {
+    return std::max(std::min(val1, val2), boundary);
+  }
+  qreal boundedMax(qreal val1, qreal val2, qreal boundary)
+  {
+    return std::min(std::max(val1, val2), boundary);
+  }
   void adjustToAspectRatio(const QPointF& topLeft, QPointF& bottomRight, double targetAspectRatio, const QRectF& bounds)
   {
     double actualHeight = bottomRight.y() - topLeft.y();
