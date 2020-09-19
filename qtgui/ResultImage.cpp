@@ -9,7 +9,6 @@ ResultImage::ResultImage(QQuickItem* parent)
 : QQuickPaintedItem()
 , image{}
 {
-  logging::LogStream::instance().setLogLevel(logging::Level::DEBUG);
 }
 
 void ResultImage::setData(const QImage& data)

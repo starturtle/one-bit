@@ -42,7 +42,7 @@ protected:
   void mouseReleaseEvent(QMouseEvent* theEvent) final;
 
 private:
-  void normalizeLocations();
+  void normalizeLocations(qreal paintedWidth, qreal paintedHeight);
 
   QUrl filePath;
   QPoint resultSize;
