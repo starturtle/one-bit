@@ -9,7 +9,7 @@ namespace
 {
   qreal boundedMin(qreal val1, qreal val2, qreal boundary);
   qreal boundedMax(qreal val1, qreal val2, qreal boundary);
-  void adjustToAspectRatio(const QPointF& topLeft, QPointF& bottomRight, double targetAspectRatio, const QRectF& bounds);
+  void adjustToAspectRatio(const QPointF& topLeft, QPointF& bottomRight, double targetAspectRatio, qreal paintedWidth, qreal paintedHeight);
   QString pointsToClippingInfo(const QPointF& topLeft, const QPointF& bottomRight);
   void scalePoint(const QPointF& source, QPoint& target, qreal scalingFactor);
 }
@@ -76,7 +76,9 @@ void SourceImage::mouseReleaseEvent(QMouseEvent* theEvent)
   newStartingPoint = { -1, -1 };
   newTopLeft = { -1, -1 };
   newBottomRight = { -1, -1 };
-  update();
+  update(); // triggers paint(...)
+  logging::LogStream::instance().getLogStream(logging::Level::INFO) << "Clipping to (" << clipTopLeft.x() << ", " << clipTopLeft.y() << ")/(" << clipBottomRight.x() << ", " << clipBottomRight.y() << ")" << std::endl;
+  logging::LogStream::instance().getLogStream(logging::Level::INFO) << "Based on (" << topLeft.x() << ", " << topLeft.y() << ")/(" << bottomRight.x() << ", " << bottomRight.y() << ")" << std::endl;
 }
 
 void SourceImage::setPath(const QUrl& data)
@@ -92,22 +94,22 @@ void SourceImage::setPath(const QUrl& data)
   newBottomRight = { -1, -1 };
   clipTopLeft = { 0, 0 };
   clipBottomRight = { image.width() - 1, image.height() - 1 };
-  update();
   logging::LogStream::instance().getLogStream(logging::Level::INFO) << "File Size is " << image.width() << "x" << image.height() << std::endl;
+  update(); // triggers paint(...)
 }
 
 void SourceImage::setResultWidth(const int& width)
 {
   logging::LogStream::instance().getLogStream(logging::Level::INFO) << "new width: " << width << std::endl;
   resultSize.setX(width);
-  update();
+  update(); // triggers paint(...)
 }
 
 void SourceImage::setResultHeight(const int& height)
 {
   logging::LogStream::instance().getLogStream(logging::Level::INFO) << "new height: " << height << std::endl;
   resultSize.setY(height);
-  update();
+  update(); // triggers paint(...)
 }
 
 void SourceImage::paint(QPainter* painter) {
@@ -118,6 +120,10 @@ void SourceImage::paint(QPainter* painter) {
     return;
   }
   QImage scaled = image.scaledToWidth(bounds.width());
+  if (scaled.height() > bounds.height())
+  {
+    scaled = image.scaledToHeight(bounds.height());
+  }
   QPointF center = bounds.center() - scaled.rect().center();
 
   if (center.x() < 0)
@@ -126,17 +132,25 @@ void SourceImage::paint(QPainter* painter) {
     center.setY(0);
   setHeight(scaled.height());
   painter->drawImage(center, scaled);
-
-  normalizeLocations();
+  normalizeLocations(scaled.width(), scaled.height());
   painter->setPen(QColor(255, 0, 0));
   painter->drawRect(topLeft.x(), topLeft.y(), bottomRight.x()-topLeft.x(), bottomRight.y()-topLeft.y());
   painter->setPen(QColor(0, 255, 0));
   painter->drawRect(newTopLeft.x(), newTopLeft.y(), newBottomRight.x() - newTopLeft.x(), newBottomRight.y() - newTopLeft.y());
+
+  newClipping();
+  dataChanged();
 }
 
 QImage SourceImage::data() const
 {
-  auto returnValue{ image.copy(QRect(clipTopLeft, clipBottomRight)) };
+  QRectF bounds = boundingRect();
+  QImage scaled = image.scaledToWidth(bounds.width());
+  if (scaled.height() > bounds.height())
+  {
+    scaled = image.scaledToHeight(bounds.height());
+  }
+  auto returnValue{ scaled.copy(QRectF(topLeft, bottomRight).toRect()) };
   logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "Clipping to (" << clipTopLeft.x() << ", " << clipTopLeft.y() << ")/(" << clipBottomRight.x() << ", " << clipBottomRight.y() << ")" << std::endl;
   const std::string outputIsValid{ returnValue.isNull() ? "empty " : "" };
   const std::string inputIsValid{ image.isNull() ? "empty " : "" };
@@ -173,22 +187,18 @@ QString SourceImage::clippingInfo() const
   return pointsToClippingInfo(clipTopLeft, clipBottomRight);
 }
 
-void SourceImage::normalizeLocations()
+void SourceImage::normalizeLocations(qreal paintedWidth, qreal paintedHeight)
 {
-  double definedAspectRatio = (1. * resultSize.y()) / resultSize.x();
+  double definedAspectRatio = resultSize.y() / resultSize.x();
 
-  QRectF bounds = boundingRect();
+  adjustToAspectRatio(topLeft, bottomRight, definedAspectRatio, paintedWidth, paintedHeight);
+  adjustToAspectRatio(newTopLeft, newBottomRight, definedAspectRatio, paintedWidth, paintedHeight);
 
-  adjustToAspectRatio(topLeft, bottomRight, definedAspectRatio, bounds);
-  adjustToAspectRatio(newTopLeft, newBottomRight, definedAspectRatio, bounds);
-
-  qreal scaling{ image.width() / bounds.width() };
+  qreal scaling{ image.width() / paintedWidth };
   scalePoint(topLeft, clipTopLeft, scaling);
   scalePoint(bottomRight, clipBottomRight, scaling);
   scalePoint(newTopLeft, newClipTopLeft, scaling);
   scalePoint(newBottomRight, newClipBottomRight, scaling);
-
-  newClipping();
 }
 
 namespace
@@ -203,7 +213,7 @@ namespace
     return std::min(std::max(val1, val2), boundary);
   }
 
-  void adjustToAspectRatio(const QPointF& topLeft, QPointF& bottomRight, double targetAspectRatio, const QRectF& bounds)
+  void adjustToAspectRatio(const QPointF& topLeft, QPointF& bottomRight, double targetAspectRatio, qreal paintedWidth, qreal paintedHeight)
   {
     double actualHeight = bottomRight.y() - topLeft.y();
     double actualWidth = bottomRight.x() - topLeft.x();
@@ -219,13 +229,13 @@ namespace
     if (actualWidth > actualHeight)
     {
       qreal newBottomRightY{ topLeft.y() + actualWidth * targetAspectRatio };
-      if (newBottomRightY < bounds.height())
+      if (newBottomRightY < paintedHeight)
       {
         bottomRight.setY(newBottomRightY);
       }
       else
       {
-        bottomRight.setY(bounds.height() - 1);
+        bottomRight.setY(paintedHeight - 1);
         actualHeight = bottomRight.y() - topLeft.y();
         bottomRight.setX(topLeft.x() + actualHeight / targetAspectRatio);
       }
@@ -233,13 +243,13 @@ namespace
     else
     {
       qreal newBottomRightX{ topLeft.x() + actualHeight / targetAspectRatio };
-      if (newBottomRightX < bounds.width())
+      if (newBottomRightX < paintedWidth)
       {
         bottomRight.setX(newBottomRightX);
       }
       else
       {
-        bottomRight.setX(bounds.width() - 1);
+        bottomRight.setX(paintedWidth - 1);
         actualWidth = bottomRight.x() - topLeft.x();
         bottomRight.setY(topLeft.y() + actualWidth / targetAspectRatio);
       }

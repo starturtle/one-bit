@@ -20,7 +20,7 @@ ApplicationWindow {
         }
       }
       MenuItem {
-        text: qsTr("Select Out&path")
+        text: qsTr("&Save as...")
         onTriggered: {
           imagePreview.getOutputFile()
         }
@@ -28,19 +28,6 @@ ApplicationWindow {
       MenuItem {
         text: qsTr("Exit")
         onTriggered: Qt.quit();
-      }
-    }
-    Menu {
-      title: qsTr("&Pixelation")
-      MenuItem {
-        text: qsTr("&Run")
-        onTriggered: {
-          pixelator.setInputImage(imagePreview.input.imageBuffer)
-          pixelator.setOutputImage(imagePreview.storagePath)
-          pixelator.setStitchSizes(pixelSizes.resultWidth, pixelSizes.resultHeight, pixelSizes.stitchRows, pixelSizes.stitchColumns)
-          pixelator.setStitchColors(pixelColors.colors)
-          var result = pixelator.run()
-        }
       }
     }
   }
@@ -56,6 +43,8 @@ ApplicationWindow {
       {
         imagePreview.input.resultWidth = resultWidth
         imagePreview.input.resultHeight = resultHeight
+        pixelator.setStitchSizes(resultWidth, resultHeight, stitchRows, stitchColumns)
+        pixelator.run()
         console.log("Set preview dimensions to " + imagePreview.input.resultWidth + "/" + imagePreview.input.resultHeight)
       }
     }
@@ -63,6 +52,11 @@ ApplicationWindow {
     PixelColors {
       id: pixelColors
       Layout.fillWidth: true
+      onColorsChanged: {
+        pixelator.setStitchColors(pixelColors.colors)
+        pixelator.run()
+        console.log("Set colors to " + pixelColors.colors)
+      }
     }
   
     FileDisplay {
@@ -72,29 +66,36 @@ ApplicationWindow {
       id: imagePreview
       onInputDataChanged:
       {
-        pixelator.setInputImage(imagePreview.input.imageBuffer)
-        pixelator.setOutputImage(imagePreview.storagePath)
-        dimensions = pixelSizes.dimensions
-        pixelator.setStitchSizes(pixelSizes.resultWidth, pixelSizes.resultHeight, pixelSizes.stitchRows, pixelSizes.stitchColumns)
-        pixelator.setStitchColors(pixelColors.colors)
+        pixelator.setInputImage(imagePreview.previewData)
+        console.log("Updated input image, trigger pixelation")
         pixelator.run()
       }
       onClippingSizeChanged:
       {
         footer.update
       }
+      onStoragePathSet:
+      {
+        pixelator.setStoragePath(storagePath)
+        pixelator.commit()
+      }
     }
-    Component.onCompleted:
-    {
+    Component.onCompleted: {
       imagePreview.input.resultWidth = pixelSizes.resultWidth
       imagePreview.input.resultHeight = pixelSizes.resultHeight
+    }
+    onHeightChanged: {
+      imagePreview.height = contentItem.height - pixelColors.height
+    }
+    onWidthChanged: {
+      imagePreview.width = contentItem.width
     }
   }
   QtPixelator {
     id: pixelator
-    onPixelationCreated:
-    {
-      imagePreview.outputImage.setData(pixelator.resultImage)
+    onPixelationCreated: {
+      console.log("new pixelation created")
+      imagePreview.updatePreview(pixelator.resultBuffer)
     }
   }
   footer: ToolBar {
@@ -102,5 +103,11 @@ ApplicationWindow {
       anchors.fill: parent
       Label { text: imagePreview.clippingInfo }
     }
+  }
+  Component.onCompleted: {
+    pixelator.setStitchSizes(pixelSizes.resultWidth, pixelSizes.resultHeight, pixelSizes.stitchRows, pixelSizes.stitchColumns)
+    console.log("Initialize stitch counts to " + pixelSizes.stitchColumns + "M " + pixelSizes.stitchRows + "R, totaling " + pixelSizes.resultWidth + "x" + pixelSizes.resultHeight + "cm")
+    pixelator.setStitchColors(pixelColors.colors)
+    console.log("Initialize colors to " + pixelColors.colors)
   }
 }

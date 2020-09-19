@@ -38,16 +38,20 @@ Frame {
   }
   property var sourcePath: inputFileGet.fileUrl
   property var storagePath: outputFileGet.fileUrl
+  property var previewData: inputImage.imageBuffer
   function getInputFile() {inputFileGet.open()}
   function getOutputFile() {outputFileGet.open()}
+  function updatePreview(image) {outputImage.setData(image)}
   property var input: inputImage
   property string clippingInfo: inputImage.clippingInfo
   signal inputDataChanged()
   signal clippingSizeChanged()
+  signal storagePathSet()
 
   Component.onCompleted:
   {
-    inputImage.pathChanged.connect(inputDataChanged)
+    inputImage.dataChanged.connect(inputDataChanged)
     inputImage.newClipping.connect(clippingSizeChanged)
+    outputFileGet.accepted.connect(storagePathSet)
   }
 }

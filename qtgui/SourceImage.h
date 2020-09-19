@@ -7,7 +7,7 @@
 class SourceImage : public QQuickPaintedItem
 {
   Q_OBJECT
-    Q_PROPERTY(QImage imageBuffer READ data)
+    Q_PROPERTY(QImage imageBuffer READ data NOTIFY dataChanged)
     Q_PROPERTY(QUrl path WRITE setPath NOTIFY pathChanged)
     Q_PROPERTY(int resultWidth WRITE setResultWidth NOTIFY widthChanged)
     Q_PROPERTY(int resultHeight WRITE setResultHeight NOTIFY heightChanged)
@@ -42,7 +42,7 @@ protected:
   void mouseReleaseEvent(QMouseEvent* theEvent) final;
 
 private:
-  void normalizeLocations();
+  void normalizeLocations(qreal paintedWidth, qreal paintedHeight);
 
   QUrl filePath;
   QPoint resultSize;
