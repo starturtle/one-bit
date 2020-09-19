@@ -45,10 +45,13 @@ Frame {
   function getOutputFile() {outputFileGet.open()}
   function updatePreview(image) {outputImage.setData(image)}
   property var input: inputImage
+  property string clippingInfo: inputImage.clippingInfo
   signal inputDataChanged()
+  signal clippingSizeChanged()
 
   Component.onCompleted:
   {
     inputImage.pathChanged.connect(inputDataChanged)
+    inputImage.newClipping.connect(clippingSizeChanged)
   }
 }

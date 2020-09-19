@@ -80,6 +80,10 @@ ApplicationWindow {
         dimensions = pixelSizes.dimensions
         pixelator.run()
       }
+      onClippingSizeChanged:
+      {
+        footer.update
+      }
     }
     Component.onCompleted: {
       imagePreview.input.resultWidth = pixelSizes.resultWidth
@@ -96,6 +100,12 @@ ApplicationWindow {
     id: pixelator
     onPixelationCreated: {
       imagePreview.updatePreview(pixelator.resultImage)
+    }
+  }
+  footer: ToolBar {
+    RowLayout {
+      anchors.fill: parent
+      Label { text: imagePreview.clippingInfo }
     }
   }
   Component.onCompleted: {
