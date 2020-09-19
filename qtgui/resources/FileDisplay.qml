@@ -27,6 +27,9 @@ Frame {
       SplitView.minimumWidth: 200
       SplitView.preferredWidth: 400
       SplitView.maximumWidth: 600
+      onDataChanged: {
+        outputImage.setData(imageBuffer)
+      }
     }
 
     ResultImage {
@@ -40,6 +43,7 @@ Frame {
   property var storagePath: outputFileGet.fileUrl
   function getInputFile() {inputFileGet.open()}
   function getOutputFile() {outputFileGet.open()}
+  function updatePreview(image) {outputImage.setData(image)}
   property var input: inputImage
   signal inputDataChanged()
 

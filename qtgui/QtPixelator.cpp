@@ -43,14 +43,17 @@ errors::Code QtPixelator::run(){
       logging::LogStream::instance().getLogStream(logging::Level::ERROR) << "Failed to scale for pixelation" << std::endl;
       return errors::PAINT_ERROR;
     }
-    if (imageBuffer.save(storagePath.toLocalFile()))
+    if (!storagePath.isEmpty())
     {
-      logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "File written" << std::endl;
-    }
-    else
-    {
-      logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "Could not write result" << std::endl;
-      result = errors::WRITE_ERROR;
+      if (imageBuffer.save(storagePath.toLocalFile()))
+      {
+        logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "File written" << std::endl;
+      }
+      else
+      {
+        logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "Could not write result" << std::endl;
+        result = errors::WRITE_ERROR;
+      }
     }
   }
   else
@@ -163,10 +166,10 @@ errors::Code QtPixelator::checkSettings()
   {
     return errors::WRONG_INPUT_FILE;
   }
-  if (storagePath.isEmpty())
-  {
-    return errors::WRONG_OUTPUT_FILE;
-  }
+  //if (storagePath.isEmpty())
+  //{
+  //  return errors::WRONG_OUTPUT_FILE;
+  //}
   if (stitchWidth <= 0 || stitchHeight <= 0 || stitchCount <= 0 || rowCount <= 0)
   {
     return errors::INVALID_IMAGE_SIZES;

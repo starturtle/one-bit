@@ -78,6 +78,7 @@ ApplicationWindow {
         pixelator.setStitchSizes(pixelSizes.resultWidth, pixelSizes.resultHeight, pixelSizes.stitchRows, pixelSizes.stitchColumns)
         pixelator.setStitchColors(pixelColors.colors)
         pixelator.run()
+        outputImage.setData(pixelator.resultImage)
       }
     }
     Component.onCompleted:

@@ -79,6 +79,7 @@ void SourceImage::setPath(const QUrl& data)
   clipTopLeft = { 0, 0 };
   clipBottomRight = { image.width(), image.height() };
   update();
+  dataChanged();
 }
 
 void SourceImage::setResultWidth(const int& width)
