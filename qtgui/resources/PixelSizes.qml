@@ -61,5 +61,7 @@ Pane {
   Component.onCompleted: {
     resWidth.editingFinished.connect(sizesChanged)
     resHeight.editingFinished.connect(sizesChanged)
+    stCols.editingFinished.connect(sizesChanged)
+    stRows.editingFinished.connect(sizesChanged)
   }
 }

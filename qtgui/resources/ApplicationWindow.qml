@@ -43,7 +43,7 @@ ApplicationWindow {
       {
         imagePreview.input.resultWidth = resultWidth
         imagePreview.input.resultHeight = resultHeight
-        pixelator.setStitchSizes(pixelSizes.resultWidth, pixelSizes.resultHeight, pixelSizes.stitchRows, pixelSizes.stitchColumns)
+        pixelator.setStitchSizes(resultWidth, resultHeight, stitchRows, stitchColumns)
         pixelator.run()
         console.log("Set preview dimensions to " + imagePreview.input.resultWidth + "/" + imagePreview.input.resultHeight)
       }
@@ -67,7 +67,6 @@ ApplicationWindow {
       onInputDataChanged:
       {
         pixelator.setInputImage(imagePreview.previewData)
-        dimensions: pixelSizes.dimensions
         console.log("Updated input image, trigger pixelation")
         pixelator.run()
       }
