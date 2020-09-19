@@ -20,24 +20,14 @@ ApplicationWindow {
         }
       }
       MenuItem {
-        text: qsTr("Select Out&path")
+        text: qsTr("&Save as...")
         onTriggered: {
           imagePreview.getOutputFile()
-          pixelator.setStoragePath(imagePreview.storagePath)
         }
       }
       MenuItem {
         text: qsTr("Exit")
         onTriggered: Qt.quit();
-      }
-    }
-    Menu {
-      title: qsTr("&Pixelation")
-      MenuItem {
-        text: qsTr("&Run")
-        onTriggered: {
-          var result = pixelator.commit()
-        }
       }
     }
   }
@@ -76,13 +66,19 @@ ApplicationWindow {
       id: imagePreview
       onInputDataChanged:
       {
-        pixelator.setInputImage(imagePreview.input.imageBuffer)
-        dimensions = pixelSizes.dimensions
+        pixelator.setInputImage(imagePreview.previewData)
+        dimensions: pixelSizes.dimensions
+        console.log("Updated input image, trigger pixelation")
         pixelator.run()
       }
       onClippingSizeChanged:
       {
         footer.update
+      }
+      onStoragePathSet:
+      {
+        pixelator.setStoragePath(storagePath)
+        pixelator.commit()
       }
     }
     Component.onCompleted: {
@@ -99,7 +95,8 @@ ApplicationWindow {
   QtPixelator {
     id: pixelator
     onPixelationCreated: {
-      imagePreview.updatePreview(pixelator.resultImage)
+      console.log("new pixelation created")
+      imagePreview.updatePreview(pixelator.resultBuffer)
     }
   }
   footer: ToolBar {

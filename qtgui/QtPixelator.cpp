@@ -59,7 +59,7 @@ errors::Code QtPixelator::commit()
     return errors::WRONG_OUTPUT_FILE;
   }
   
-  if (imageBuffer.save(storagePath.toLocalFile()))
+  if (resultBuffer.save(storagePath.toLocalFile()))
   {
     logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "File written" << std::endl;
     return errors::NONE;

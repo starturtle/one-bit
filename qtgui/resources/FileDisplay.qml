@@ -27,9 +27,6 @@ Frame {
       SplitView.minimumWidth: 200
       SplitView.preferredWidth: 400
       SplitView.maximumWidth: 600
-      onDataChanged: {
-        outputImage.setData(imageBuffer)
-      }
     }
 
     ResultImage {
@@ -41,6 +38,7 @@ Frame {
   }
   property var sourcePath: inputFileGet.fileUrl
   property var storagePath: outputFileGet.fileUrl
+  property var previewData: inputImage.imageBuffer
   function getInputFile() {inputFileGet.open()}
   function getOutputFile() {outputFileGet.open()}
   function updatePreview(image) {outputImage.setData(image)}
@@ -48,10 +46,12 @@ Frame {
   property string clippingInfo: inputImage.clippingInfo
   signal inputDataChanged()
   signal clippingSizeChanged()
+  signal storagePathSet()
 
   Component.onCompleted:
   {
-    inputImage.pathChanged.connect(inputDataChanged)
+    inputImage.dataChanged.connect(inputDataChanged)
     inputImage.newClipping.connect(clippingSizeChanged)
+    outputFileGet.accepted.connect(storagePathSet)
   }
 }
