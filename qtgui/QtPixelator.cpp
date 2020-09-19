@@ -26,6 +26,10 @@ QtPixelator::QtPixelator(QObject* in_parent)
   , stitchHeight{0}
   , stitchCount{0}
   , rowCount{0}
+  , auxColorPri{QColorConstants::Svg::red}
+  , auxColorSec{QColorConstants::Svg::darkgray}
+  , helperGrid{5}
+  , gridEnabled{true}
 {}
 
 errors::Code QtPixelator::run(){
@@ -43,6 +47,7 @@ errors::Code QtPixelator::run(){
       logging::LogStream::instance().getLogStream(logging::Level::ERROR) << "Failed to scale for pixelation" << std::endl;
       return errors::PAINT_ERROR;
     }
+    drawHelpers();
   }
   else
   {
@@ -109,6 +114,15 @@ errors::Code QtPixelator::setStitchColors(const std::vector<QColor> in_colors)
   return errors::NONE;
 }
 
+int QtPixelator::setHelperSettings(bool gridEnabled, QColor primaryColor, QColor secondaryColor, unsigned gridCount)
+{
+  this->gridEnabled = gridEnabled;
+  auxColorPri = primaryColor;
+  auxColorSec = secondaryColor;
+  helperGrid = gridCount;
+  return errors::NONE;
+}
+
 QImage QtPixelator::resultImage() const
 {
   return resultBuffer.copy();
@@ -155,9 +169,10 @@ bool QtPixelator::scalePixels(const QImage& colorMap)
     QRgb* line = (QRgb*)colorMap.scanLine(y);
     for (int x = 0; x < colorMap.width(); x++) {
       QColor stixelColor{ line[x] };
-      qPainter.setPen(stixelColor);
+      qPainter.setPen(gridEnabled ? auxColorSec : stixelColor);
       qPainter.setBrush(stixelColor);
       qPainter.drawRect(x * stitchWidth, y * stitchHeight, stitchWidth, stitchHeight);
+      logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "Draw sec from " << x << "/" << y << " with dimensions " << stitchWidth << "x" << stitchHeight << std::endl;
     }
     logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "x";
   }
@@ -165,6 +180,29 @@ bool QtPixelator::scalePixels(const QImage& colorMap)
   qPainter.end();
   logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "Pixelation complete"<< std::endl;
   return true;
+}
+
+void QtPixelator::drawHelpers()
+{
+  if(!gridEnabled)
+  {
+    return;
+  }
+  QPainter qPainter(&resultBuffer);
+  qPainter.setPen(auxColorPri);
+  unsigned primaryGridWidth = helperGrid * stitchWidth;
+  unsigned primaryGridHeight = helperGrid * stitchHeight;
+  for (unsigned x = 0; x < resultBuffer.width(); x += primaryGridWidth)
+  {
+    for (unsigned y = 0; y < resultBuffer.height(); y += primaryGridHeight)
+    {
+      qPainter.drawRect(x, y, primaryGridWidth, primaryGridHeight);
+      logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "Draw pri from " << x << "/" << y << " with dimensions " << primaryGridWidth << "x" << primaryGridHeight << std::endl;
+    }
+  }
+  qPainter.drawLine(0, resultBuffer.height() - 1, resultBuffer.width() - 1, resultBuffer.height() - 1);
+  qPainter.drawLine(resultBuffer.width() - 1, 0, resultBuffer.width() - 1, resultBuffer.height() - 1);
+  qPainter.end();
 }
 
 errors::Code QtPixelator::checkSettings()

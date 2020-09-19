@@ -18,6 +18,7 @@ public:
   Q_INVOKABLE int setStoragePath(const QUrl& in_url);
   Q_INVOKABLE int setStitchSizes(const int& in_width, const int& in_height, const int& in_rowsPerGauge, const int& in_stitchesPerGauge);
   Q_INVOKABLE int setStitchColors(const std::vector<QColor> in_colors);
+  Q_INVOKABLE int setHelperSettings(bool gridEnabled, QColor primaryColor, QColor secondaryColor, unsigned gridCount);
 
   QImage resultImage() const;
 signals:
@@ -27,6 +28,7 @@ private:
   void recomputeSizes(const int& in_width, const int& in_height, const int& in_rowsPerGauge, const int& in_stitchesPerGauge);
   QImage pixelate();
   bool scalePixels(const QImage& colorMap);
+  void drawHelpers();
   int checkSettings();
 
   QImage imageBuffer;
@@ -38,4 +40,8 @@ private:
   unsigned stitchCount;
   unsigned rowCount;
   std::vector<QColor> colors;
+  QColor auxColorSec;
+  QColor auxColorPri;
+  unsigned helperGrid;
+  bool gridEnabled;
 };
