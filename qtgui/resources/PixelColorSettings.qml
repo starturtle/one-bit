@@ -30,6 +30,8 @@ Pane {
     visible: false
     onAccepted: {
       pixelColor = color
+      colorChanged()
     }
   }
+  signal colorChanged()
 }

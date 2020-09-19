@@ -92,8 +92,9 @@ void SourceImage::setPath(const QUrl& data)
   newBottomRight = { -1, -1 };
   clipTopLeft = { 0, 0 };
   clipBottomRight = { image.width() - 1, image.height() - 1 };
-  update();
   logging::LogStream::instance().getLogStream(logging::Level::INFO) << "File Size is " << image.width() << "x" << image.height() << std::endl;
+  update();
+  dataChanged();
 }
 
 void SourceImage::setResultWidth(const int& width)

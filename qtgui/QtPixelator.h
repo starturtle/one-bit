@@ -9,12 +9,13 @@
 
 class QtPixelator : public QObject {
   Q_OBJECT
-  Q_PROPERTY(QImage resultImage READ resultImage)
+  Q_PROPERTY(QImage resultBuffer READ resultImage)
 public:
   explicit QtPixelator (QObject* in_parent = nullptr);
   Q_INVOKABLE int run();
+  Q_INVOKABLE int commit();
   Q_INVOKABLE int setInputImage(const QImage& in_image);
-  Q_INVOKABLE int setOutputImage(const QUrl& in_url);
+  Q_INVOKABLE int setStoragePath(const QUrl& in_url);
   Q_INVOKABLE int setStitchSizes(const int& in_width, const int& in_height, const int& in_rowsPerGauge, const int& in_stitchesPerGauge);
   Q_INVOKABLE int setStitchColors(const std::vector<QColor> in_colors);
 
@@ -29,6 +30,7 @@ private:
   int checkSettings();
 
   QImage imageBuffer;
+  QImage resultBuffer;
   QUrl sourcePath;
   QUrl storagePath;
   unsigned stitchWidth;
