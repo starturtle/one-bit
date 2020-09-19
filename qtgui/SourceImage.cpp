@@ -144,7 +144,13 @@ void SourceImage::paint(QPainter* painter) {
 
 QImage SourceImage::data() const
 {
-  auto returnValue{ image.copy(QRect(clipTopLeft, clipBottomRight)) };
+  QRectF bounds = boundingRect();
+  QImage scaled = image.scaledToWidth(bounds.width());
+  if (scaled.height() > bounds.height())
+  {
+    scaled = image.scaledToHeight(bounds.height());
+  }
+  auto returnValue{ scaled.copy(QRectF(topLeft, bottomRight).toRect()) };
   logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "Clipping to (" << clipTopLeft.x() << ", " << clipTopLeft.y() << ")/(" << clipBottomRight.x() << ", " << clipBottomRight.y() << ")" << std::endl;
   const std::string outputIsValid{ returnValue.isNull() ? "empty " : "" };
   const std::string inputIsValid{ image.isNull() ? "empty " : "" };
