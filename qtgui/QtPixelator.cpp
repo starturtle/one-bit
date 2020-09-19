@@ -43,25 +43,32 @@ errors::Code QtPixelator::run(){
       logging::LogStream::instance().getLogStream(logging::Level::ERROR) << "Failed to scale for pixelation" << std::endl;
       return errors::PAINT_ERROR;
     }
-    if (!storagePath.isEmpty())
-    {
-      if (imageBuffer.save(storagePath.toLocalFile()))
-      {
-        logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "File written" << std::endl;
-      }
-      else
-      {
-        logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "Could not write result" << std::endl;
-        result = errors::WRITE_ERROR;
-      }
-    }
   }
   else
   {
     logging::LogStream::instance().getLogStream(logging::Level::ERROR) << "Failed to verify input: " << result << std::endl;
   }
-  return result;
+  pixelationCreated();
 }
+
+errors::Code QtPixelator::commit()
+{
+  if (storagePath.isEmpty())
+  {
+    logging::LogStream::instance().getLogStream(logging::Level::ERROR) << "No output path set!" << std::endl;
+    return errors::WRONG_OUTPUT_FILE;
+  }
+  
+  if (imageBuffer.save(storagePath.toLocalFile()))
+  {
+    logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "File written" << std::endl;
+    return errors::NONE;
+  }
+
+  logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "Could not write result" << std::endl;
+  return errors::WRITE_ERROR;
+}
+
 errors::Code QtPixelator::setInputImage(const QImage& in_image)
 {
   const std::string input{ in_image.isNull() ? " to NULL" : "" };
@@ -70,7 +77,7 @@ errors::Code QtPixelator::setInputImage(const QImage& in_image)
   return imageBuffer.isNull() ? errors::WRONG_INPUT_FILE : errors::NONE;
 }
 
-errors::Code QtPixelator::setOutputImage(const QUrl& in_url)
+errors::Code QtPixelator::setStoragePath(const QUrl& in_url)
 {
   logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "Store to " << in_url.toLocalFile().toStdString() << " on completion." << std::endl;
   
@@ -104,7 +111,7 @@ errors::Code QtPixelator::setStitchColors(const std::vector<QColor> in_colors)
 
 QImage QtPixelator::resultImage() const
 {
-  return imageBuffer.copy();
+  return resultBuffer.copy();
 }
 
 void QtPixelator::recomputeSizes(const int& in_width, const int& in_height, const int& in_rowsPerGauge, const int& in_stitchesPerGauge)
@@ -142,8 +149,8 @@ QImage QtPixelator::pixelate()
 bool QtPixelator::scalePixels(const QImage& colorMap)
 {
   if (! ((colorMap.width() == stitchCount) && (colorMap.height() == rowCount))) return false;
-  imageBuffer = imageBuffer.scaled(QSize(stitchCount * stitchWidth, rowCount * stitchHeight));
-  QPainter qPainter(&imageBuffer);
+  resultBuffer = imageBuffer.scaled(QSize(stitchCount * stitchWidth, rowCount * stitchHeight));
+  QPainter qPainter(&resultBuffer);
   for (int y = 0; y < colorMap.height(); y++) {
     QRgb* line = (QRgb*)colorMap.scanLine(y);
     for (int x = 0; x < colorMap.width(); x++) {
@@ -166,10 +173,6 @@ errors::Code QtPixelator::checkSettings()
   {
     return errors::WRONG_INPUT_FILE;
   }
-  //if (storagePath.isEmpty())
-  //{
-  //  return errors::WRONG_OUTPUT_FILE;
-  //}
   if (stitchWidth <= 0 || stitchHeight <= 0 || stitchCount <= 0 || rowCount <= 0)
   {
     return errors::INVALID_IMAGE_SIZES;
