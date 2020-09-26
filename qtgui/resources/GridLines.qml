@@ -38,8 +38,8 @@ Pane {
   signal settingsChanged()
   Component.onCompleted: {
     enableButton.toggled.connect(settingsChanged)
-    priColor.colorChanged.connect(settingsChanged)
-    secColor.colorChanged.connect(settingsChanged)
+    priColor.pixelColorChanged.connect(settingsChanged)
+    secColor.pixelColorChanged.connect(settingsChanged)
     priWidth.editingFinished.connect(settingsChanged)
   }
   property bool gridEnabled: enableButton.checked

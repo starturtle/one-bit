@@ -33,6 +33,5 @@ Pane {
       colorChanged()
     }
   }
-  signal colorChanged()
   property string colorName: changeButton.text
 }
