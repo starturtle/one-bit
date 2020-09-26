@@ -6,6 +6,7 @@
     <file>PixelSizes.qml</file>
     <file>PixelColors.qml</file>
     <file>PixelColorSettings.qml</file>
+    <file>GridLines.qml</file>
     <file>FileDisplay.qml</file>
     <file>qtquickcontrols2.conf</file>
   </qresource>

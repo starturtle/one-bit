@@ -34,7 +34,7 @@ ApplicationWindow {
 
   GridLayout
   {
-    columns: 2
+    columns: 3
     anchors.fill: parent
     PixelSizes {
       Layout.fillWidth: true
@@ -58,11 +58,21 @@ ApplicationWindow {
         console.log("Set colors to " + pixelColors.colors)
       }
     }
+
+    GridLines {
+      id: gridLines
+      Layout.fillWidth: true
+      onSettingsChanged: {
+        pixelator.setHelperSettings(gridEnabled, primary, secondary, gridCount)
+        pixelator.run()
+        console.log("Set grid settings to " + gridEnabled + ", " + primary + ", " + secondary + ", " + gridCount)
+      }
+    }
   
     FileDisplay {
       Layout.fillWidth: true
       Layout.fillHeight: true
-      Layout.columnSpan: 2
+      Layout.columnSpan: 3
       id: imagePreview
       onInputDataChanged:
       {
