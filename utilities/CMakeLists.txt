@@ -7,3 +7,4 @@ add_library( utilities
   logging.cpp
   ArgumentParser.cpp
 )
+target_include_directories( utilities PUBLIC "${DOCTEST_INCLUDE_DIR}" )

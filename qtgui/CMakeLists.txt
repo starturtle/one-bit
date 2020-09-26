@@ -11,7 +11,7 @@ add_library( qtgui
   SourceImage.h
   SourceImage.cpp
 )
-target_include_directories(qtgui PRIVATE  ${Qt5_DIR})
+target_include_directories(qtgui PRIVATE ${Qt5_DIR} ${DOCTEST_INCLUDE_DIR})
 target_link_libraries( qtgui PUBLIC Qt5::Core Qt5::Gui Qt5::Qml Qt5::Quick Qt5::Network )
 target_include_directories( qtgui PUBLIC ${CMAKE_SOURCE_DIR}/utilities )
 target_link_libraries( qtgui PUBLIC utilities )
