@@ -131,6 +131,7 @@ void SourceImage::paint(QPainter* painter) {
   if (center.y() < 0)
     center.setY(0);
   setHeight(scaled.height());
+  setWidth(scaled.width());
   painter->drawImage(center, scaled);
   normalizeLocations(scaled.width(), scaled.height());
   painter->setPen(QColor(255, 0, 0));
@@ -215,6 +216,10 @@ namespace
 
   void adjustToAspectRatio(const QPointF& topLeft, QPointF& bottomRight, double targetAspectRatio, qreal paintedWidth, qreal paintedHeight)
   {
+    if (bottomRight.x() >= paintedWidth)
+      bottomRight.setX(paintedWidth - 1);
+    if (bottomRight.y() >= paintedHeight)
+      bottomRight.setY(paintedHeight - 1);
     double actualHeight = bottomRight.y() - topLeft.y();
     double actualWidth = bottomRight.x() - topLeft.x();
     double actualAspectRatio =  actualHeight / actualWidth;
