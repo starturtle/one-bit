@@ -15,4 +15,20 @@ target_include_directories(qtgui PRIVATE ${Qt5_DIR} ${DOCTEST_INCLUDE_DIR})
 target_link_libraries( qtgui PUBLIC Qt5::Core Qt5::Gui Qt5::Qml Qt5::Quick Qt5::Network )
 target_include_directories( qtgui PUBLIC ${CMAKE_SOURCE_DIR}/utilities )
 target_link_libraries( qtgui PUBLIC utilities )
+target_compile_definitions(qtgui PRIVATE -DDOCTEST_CONFIG_DISABLE)
 qtquick_compiler_add_resources(RESOURCES resources/one-bit-resources.qrc)
+add_library( qtgui_test
+  QtPixelator.h
+  QtPixelator.cpp
+  UiApplication.cpp
+  UiApplication.h
+  ResultImage.h
+  ResultImage.cpp
+  SourceImage.h
+  SourceImage.cpp
+)
+target_include_directories(qtgui_test PRIVATE ${Qt5_DIR} ${DOCTEST_INCLUDE_DIR})
+target_link_libraries( qtgui_test PUBLIC Qt5::Core Qt5::Gui Qt5::Qml Qt5::Quick Qt5::Network )
+target_include_directories( qtgui_test PUBLIC ${CMAKE_SOURCE_DIR}/utilities )
+target_link_libraries( qtgui_test PUBLIC utilities )
+target_compile_definitions(qtgui_test PRIVATE -DDOCTEST_CONFIG_IMPLEMENT)

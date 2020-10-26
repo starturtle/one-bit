@@ -1,4 +1,5 @@
 #include <iostream>
+#define DOCTEST_CONFIG_DISABLE
 #include "utilities/error_codes.h"
 #include "utilities/ArgumentParser.h"
 #ifdef USE_QT5

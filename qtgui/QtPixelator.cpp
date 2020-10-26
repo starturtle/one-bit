@@ -55,6 +55,7 @@ errors::Code QtPixelator::run(){
     logging::LogStream::instance().getLogStream(logging::Level::ERROR) << "Failed to verify input: " << result << std::endl;
   }
   pixelationCreated();
+  return errors::NONE;
 }
 
 errors::Code QtPixelator::commit()
@@ -193,9 +194,13 @@ void QtPixelator::drawHelpers()
   qPainter.setPen(auxColorPri);
   unsigned primaryGridWidth = helperGrid * stitchWidth;
   unsigned primaryGridHeight = helperGrid * stitchHeight;
-  for (unsigned x = 0; x < resultBuffer.width(); x += primaryGridWidth)
+  if (resultBuffer.width() < 0 || resultBuffer.height() < 0)
   {
-    for (unsigned y = 0; y < resultBuffer.height(); y += primaryGridHeight)
+    throw std::runtime_error("trying to draw helper lines on picture with negative dimensions!");
+  }
+  for (unsigned x = 0; x < (unsigned)resultBuffer.width(); x += primaryGridWidth)
+  {
+    for (unsigned y = 0; y < (unsigned)resultBuffer.height(); y += primaryGridHeight)
     {
       qPainter.drawRect(x, y, primaryGridWidth, primaryGridHeight);
       logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "Draw pri from " << x << "/" << y << " with dimensions " << primaryGridWidth << "x" << primaryGridHeight << std::endl;
@@ -270,8 +275,8 @@ namespace
   {
     auto divisors_smaller = divisors(smallerValue);
     auto divisors_larger = divisors(largerValue);
-    std::sort(divisors_smaller.begin(), divisors_smaller.end(), [](unsigned one, unsigned other) { return other < one; });
-    std::sort(divisors_larger.begin(), divisors_larger.end());
+    //std::sort(divisors_smaller.begin(), divisors_smaller.end(), [](unsigned one, unsigned other) { return other < one; });
+    //std::sort(divisors_larger.begin(), divisors_larger.end());
     for (auto divisor : divisors_smaller)
     {
       if (std::find(divisors_larger.begin(), divisors_larger.end(), divisor) != divisors_larger.end())
@@ -379,7 +384,6 @@ namespace
   }
 }
 
-#define DOCTEST_CONFIG_DISABLE
 #include <doctest.h>
 
 TEST_CASE("test hasDuplicates") {
