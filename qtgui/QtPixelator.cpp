@@ -230,7 +230,7 @@ namespace
   {
     for (auto& color1 = colors.begin(); color1 != colors.end(); ++color1)
     {
-      auto& nextColor = color1;
+      auto nextColor = color1;
       ++nextColor;
       if (std::find(nextColor, colors.end(), *color1) != colors.end()) return true;
     }
@@ -275,13 +275,17 @@ namespace
   {
     auto divisors_smaller = divisors(smallerValue);
     auto divisors_larger = divisors(largerValue);
-    //std::sort(divisors_smaller.begin(), divisors_smaller.end(), [](unsigned one, unsigned other) { return other < one; });
-    //std::sort(divisors_larger.begin(), divisors_larger.end());
-    for (auto divisor : divisors_smaller)
+
+    if (divisors_smaller.empty())
     {
-      if (std::find(divisors_larger.begin(), divisors_larger.end(), divisor) != divisors_larger.end())
+      return 0;
+    }
+
+    for (auto divisor = divisors_smaller.rbegin(); divisor != divisors_smaller.rend(); ++divisor)
+    {
+      if (std::find(divisors_larger.begin(), divisors_larger.end(), *divisor) != divisors_larger.end())
       {
-        return divisor;
+        return *divisor;
       }
     }
     return 1;
@@ -313,6 +317,10 @@ namespace
 
   unsigned least_common_multiple(unsigned a, unsigned b)
   {
+    if (a == 0 || b == 0)
+    {
+      return 0;
+    }
     if (divides(b, a).has_value())
     {
       return b;
@@ -344,27 +352,46 @@ namespace
     // recursive call
     std::vector<unsigned> next;
     unsigned oneValue = 0;
-    for (auto value : values)
+    for (auto i = 0; i < values.size()/2; ++i)
     {
-      if (0 == oneValue)
-      {
-        oneValue = value;
-      }
-      else
-      {
-        next.push_back(least_common_multiple(oneValue, value));
-        oneValue = 0;
-      }
+      next.push_back(least_common_multiple(values[2*i], values[2*i + 1]));
+    }
+    if (values.size() % 2 > 0)
+    {
+      next.push_back(values.back());
     }
     return least_common_multiple(next);
   }
 
+  static const double pi{ std::atan(1) * 4 };
+
+  struct HsvPoint
+  {
+    const double rc;
+    const double pl;
+    const double v;
+
+    static HsvPoint fromColor(const QColor& in_color)
+    {
+      int hue, sat, val;
+      in_color.getHsl(&hue, &sat, &val);
+      return HsvPoint(hue, sat, val);
+    }
+
+    HsvPoint(int hue, int sat, int val)
+      : rc{ 127. + std::cos(pi * hue / 180.) * sat / 2 }
+      , pl{ 127. + std::sin(pi * hue / 180.) * sat / 2 }
+      , v{ 1. * val }
+    { 
+    }
+  };
+
   double colorDistance(const QColor& one, const QColor& other)
   {
-    uchar hueDiff = abs(one.hsvHue() - other.hsvHue());
-    uchar saturationDiff = abs(one.hsvSaturation() - other.hsvSaturation());
-    uchar valueDiff = abs(one.value() - other.value());
-    return hueDiff + 10. * (saturationDiff + 10. * valueDiff);
+    HsvPoint p1 = HsvPoint::fromColor(one);
+    HsvPoint p2 = HsvPoint::fromColor(other);
+
+    return std::sqrt(std::pow(p1.rc - p2.rc, 2) + std::pow(p1.pl - p2.pl, 2) + std::pow(p1.v - p2.v, 2));
   }
 
   QColor minDiff(const QColor& in_source, const std::vector<QColor>& in_list)
@@ -385,15 +412,15 @@ namespace
 }
 
 #include <doctest.h>
+#include <iomanip>
+#include <sstream>
 
 TEST_CASE("test hasDuplicates") {
-  std::vector<QColor> colors{ QColorConstants::Svg::red, QColorConstants::Svg::red };
-  CHECK(hasDuplicates(colors));
+  CHECK(hasDuplicates({ QColorConstants::Svg::red, QColorConstants::Svg::red }));
 
-  colors[1] = QColorConstants::Svg::blue;
-  CHECK(!hasDuplicates(colors));
+  CHECK(! hasDuplicates({ QColorConstants::Svg::red, QColorConstants::Svg::blue }));
 
-  colors.push_back(QColorConstants::Svg::magenta);
+  std::vector<QColor>colors = { QColorConstants::Svg::red, QColorConstants::Svg::blue, QColorConstants::Svg::magenta };
   CHECK(!hasDuplicates(colors));
 
   colors.push_back(QColorConstants::Svg::limegreen);
@@ -455,37 +482,56 @@ TEST_CASE("test divisors") {
   CHECK_NE(result.find(16), result.end());
 
   result = divisors(24);
-  CHECK_EQ(result.size(), 8);
-  CHECK_NE(result.find(1), result.end());
-  CHECK_NE(result.find(2), result.end());
-  CHECK_NE(result.find(3), result.end());
-  CHECK_NE(result.find(4), result.end());
-  CHECK_NE(result.find(6), result.end());
-  CHECK_NE(result.find(8), result.end());
-  CHECK_NE(result.find(12), result.end());
-  CHECK_NE(result.find(24), result.end());
+CHECK_EQ(result.size(), 8);
+CHECK_NE(result.find(1), result.end());
+CHECK_NE(result.find(2), result.end());
+CHECK_NE(result.find(3), result.end());
+CHECK_NE(result.find(4), result.end());
+CHECK_NE(result.find(6), result.end());
+CHECK_NE(result.find(8), result.end());
+CHECK_NE(result.find(12), result.end());
+CHECK_NE(result.find(24), result.end());
 
-  result = divisors(9192); // 2^13
-  CHECK_EQ(result.size(), 14);
-  unsigned factorInlist = 1;
-  for (auto i = 0; i < 14; ++i)
-  {
-    CHECK_NE(result.find(factorInlist), result.end());
-    factorInlist *= 2;
-  }
+result = divisors(36);
+CHECK_EQ(result.size(), 9);
+CHECK_NE(result.find(1), result.end());
+CHECK_NE(result.find(2), result.end());
+CHECK_NE(result.find(3), result.end());
+CHECK_NE(result.find(4), result.end());
+CHECK_NE(result.find(6), result.end());
+CHECK_NE(result.find(9), result.end());
+CHECK_NE(result.find(12), result.end());
+CHECK_NE(result.find(18), result.end());
+CHECK_NE(result.find(36), result.end());
+
+result = divisors(8192); // 2^13
+CHECK_EQ(result.size(), 14);
+unsigned factorInlist = 1;
+for (auto i = 0; i < 14; ++i)
+{
+  CHECK_NE(result.find(factorInlist), result.end());
+  factorInlist *= 2;
 }
 
-TEST_CASE("test search_greatest_common_divisor")
+result = divisors(262144); // 2^18
+CHECK_EQ(result.size(), 19);
+factorInlist = 1;
+for (auto i = 0; i < 19; ++i)
 {
+  CHECK_NE(result.find(factorInlist), result.end());
+  factorInlist *= 2;
+}
+}
+
+TEST_CASE("test search_greatest_common_divisor") {
   CHECK_EQ(search_greatest_common_divisor(5, 3), 1);
-  CHECK_EQ(search_greatest_common_divisor(262144, 59049), 1);
-  CHECK_EQ(search_greatest_common_divisor(262144, 1024), 1024);
-  CHECK_EQ(search_greatest_common_divisor(36, 24), 12);
-  CHECK_EQ(search_greatest_common_divisor(36, 0), 0);
+  CHECK_EQ(search_greatest_common_divisor(59049, 262144), 1);
+  CHECK_EQ(search_greatest_common_divisor(1024, 262144), 1024);
+  CHECK_EQ(search_greatest_common_divisor(24, 36), 12);
+  CHECK_EQ(search_greatest_common_divisor(0, 36), 0);
 }
 
-TEST_CASE("test greatest_common_divisor")
-{
+TEST_CASE("test greatest_common_divisor") {
   CHECK_EQ(greatest_common_divisor(5, 3), 1);
   CHECK_EQ(greatest_common_divisor(262144, 59049), 1);
   CHECK_EQ(greatest_common_divisor(262144, 1024), 1024);
@@ -494,32 +540,114 @@ TEST_CASE("test greatest_common_divisor")
   CHECK_EQ(greatest_common_divisor(36, 0), 0);
 }
 
-TEST_CASE("test pair-based least_common_multiple")
-{
+TEST_CASE("test pair-based least_common_multiple") {
   CHECK_EQ(least_common_multiple(16, 8), 16);
   CHECK_EQ(least_common_multiple(8, 16), 16);
   CHECK_EQ(least_common_multiple(16, 18), 144);
   CHECK_EQ(least_common_multiple(1, 15), 15);
   CHECK_EQ(least_common_multiple(36, 24), 72);
+  CHECK_EQ(least_common_multiple(243, 1024), 243 * 1024); // power of 3 and power of 2 don't share factors
 
   CHECK_EQ(least_common_multiple(0, 18), 0);
   CHECK_EQ(least_common_multiple(18, 0), 0);
   CHECK_EQ(least_common_multiple(0, 0), 0);
-
-  // TODO flesh out further. tests should be extremely straightforward
 }
 
 TEST_CASE("test vector-based least_common_multiple")
 {
+  CHECK_EQ(least_common_multiple({ 16, 8 }), 16);
+  CHECK_EQ(least_common_multiple({ 8, 16 }), 16);
+  CHECK_EQ(least_common_multiple({ 12, 16, 18 }), 144);
+  CHECK_EQ(least_common_multiple({ 1, 15 }), 15);
+  CHECK_EQ(least_common_multiple({ 36, 24, 9 }), 72);
+  CHECK_EQ(least_common_multiple({ 243, 1024 }), 243 * 1024); // don't share factors
+  CHECK_EQ(least_common_multiple({ 125, 243, 1024 }), 125 * 243 * 1024); // don't share factors
+
+  CHECK_EQ(least_common_multiple({ 0, 18, 9 }), 0);
+  CHECK_EQ(least_common_multiple({ 18, 0 }), 0);
+  CHECK_EQ(least_common_multiple({ 0, 0 }), 0);
+}
+
+const std::string qcolorToHexString(const QColor& in_color)
+{
+  std::stringstream formatted{};
+  formatted << "#" << std::setfill('0') << std::setw(2) << std::hex << in_color.red() << std::setw(2) << in_color.green() << std::setw(2) << in_color.blue();
+  formatted << ", as HSV: " << std::dec << in_color.hsvHue() << "/" << in_color.hsvSaturation() << "/" << in_color.value();
+  return formatted.str();
+}
+
+using idxType = int;
+TEST_CASE("test color difference calculus")
+{
+  const std::vector<std::pair<std::string, QColor> > colors { 
+    {"red", QColorConstants::Svg::red}, 
+    {"blue", QColorConstants::Svg::blue}, 
+    {"green", QColorConstants::Svg::green}, 
+    {"white", QColorConstants::Svg::white}, 
+    {"yellow", QColorConstants::Svg::yellow}, 
+    {"black", QColorConstants::Svg::black },
+    {"cyan", QColorConstants::Svg::cyan },
+    {"magenta", QColorConstants::Svg::magenta },
+  };
+  std::map<std::pair<idxType, idxType>, double> distancesByIndex;
+  for (idxType first = 0; first < colors.size(); ++first)
+  {
+    for (idxType second = 0; second <= first; ++second)
+    {
+      auto [c1name, c1] = colors[first];
+      auto [c2name, c2] = colors[second];
+      int c1h, c1s, c1v;
+      int c2h, c2s, c2v;
+      c1.getHsl(&c1h, &c1s, &c1v);
+      c2.getHsl(&c2h, &c2s, &c2v);
+
+      const double pi = std::atan(1) * 4;
+      double a1 = pi * c1h / 180.;
+      double a2 = pi * c2h / 180.;
+      double h1{ 1. * c1v }, h2{ 1. * c2v };
+      std::vector<double> pos1{ 127. + std::cos(a1) * c1s / 2, 127. + std::sin(a1) * c1s / 2, h1 }, pos2{ 127. + std::cos(a2) * c2s / 2, 127. + std::sin(a2) * c2s / 2, h2 };
+
+      double targetDistance{ std::sqrt(std::pow(pos1[0] - pos2[0], 2) + std::pow(pos1[1] - pos2[1], 2) + std::pow(pos1[2] - pos2[2], 2)) };
+      distancesByIndex.insert_or_assign(std::make_pair(first, second), targetDistance);
+    }
+  }
+  // colors should have distance 0 to themselves
+  for (auto [position, distance] : distancesByIndex)
+  {
+    auto [c1name, color1] = colors[position.first];
+    auto [c2name, color2] = colors[position.second];
+    std::cout << "Expecting distance " << distance << " for " << c1name << " (" << qcolorToHexString(color1) << ") and " << c2name << " (" << qcolorToHexString(color2) << ")" << std::endl;
+    CHECK_EQ(colorDistance(color1, color2), distance);
+  }
+
   // TODO flesh out. tests should be extremely straightforward
 }
 
-TEST_CASE("test color difference calculus")
-{
-  // TODO flesh out. tests should be extremely straightforward
-}
+#include <tuple>
 
 TEST_CASE("test minimum difference finder")
 {
-  // TODO this one really needs testing. 
+  const std::vector<QColor> colors{ QColorConstants::Svg::red, QColorConstants::Svg::blue, QColorConstants::Svg::green, QColorConstants::Svg::white, QColorConstants::Svg::yellow, QColorConstants::Svg::magenta };
+  for (auto color : colors)
+  {
+    std::cout << qcolorToHexString(color) << std::endl;
+  }
+
+  const std::vector < std::tuple<std::string, QColor, QColor> > testData{
+    {"orange", QColorConstants::Svg::orange, QColorConstants::Svg::yellow},
+    {"orangered", QColorConstants::Svg::orangered, QColorConstants::Svg::red},
+    {"white", QColorConstants::Svg::white, QColorConstants::Svg::white},
+    {"purple", QColorConstants::Svg::purple, QColorConstants::Svg::magenta},
+    {"aqua", QColorConstants::Svg::aqua, QColorConstants::Svg::blue},
+    {"black", QColorConstants::Svg::black, QColorConstants::Svg::green},
+  };
+
+  for (auto testSet : testData)
+  {
+    auto [name, in_color, out_color] = testSet;
+    auto targetColor = minDiff(in_color, colors);
+    std::cout << "Target color " << name << " " << qcolorToHexString(in_color) << std::endl;
+    std::cout << "maps to " << qcolorToHexString(targetColor) << std::endl;
+    CHECK_EQ(targetColor, out_color);
+  }
 }
