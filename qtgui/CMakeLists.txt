@@ -11,17 +11,23 @@ add_library( qtgui
   SourceImage.h
   SourceImage.cpp
 )
-target_include_directories(qtgui PRIVATE ${Qt5_DIR} ${DOCTEST_INCLUDE_DIR})
+target_include_directories( qtgui PRIVATE ${Qt5_DIR} ${DOCTEST_INCLUDE_DIR})
 target_link_libraries( qtgui PUBLIC Qt5::Core Qt5::Gui Qt5::Qml Qt5::Quick Qt5::Network )
 target_include_directories( qtgui PUBLIC ${CMAKE_SOURCE_DIR}/utilities )
 target_link_libraries( qtgui PUBLIC utilities )
-target_compile_definitions(qtgui PRIVATE -DDOCTEST_CONFIG_DISABLE)
-qtquick_compiler_add_resources(RESOURCES resources/one-bit-resources.qrc)
-add_executable( qtpixelator_test
-  QtPixelator.cpp
-)
-target_include_directories(qtpixelator_test PRIVATE ${Qt5_DIR} ${DOCTEST_INCLUDE_DIR})
+target_compile_definitions( qtgui PRIVATE -DDOCTEST_CONFIG_DISABLE )
+qtquick_compiler_add_resources( RESOURCES resources/one-bit-resources.qrc )
+
+add_executable( qtpixelator_test QtPixelator.cpp )
+target_include_directories( qtpixelator_test PRIVATE ${Qt5_DIR} ${DOCTEST_INCLUDE_DIR} )
 target_link_libraries( qtpixelator_test PUBLIC Qt5::Core Qt5::Gui Qt5::Qml Qt5::Quick Qt5::Network )
 target_include_directories( qtpixelator_test PUBLIC ${CMAKE_SOURCE_DIR}/utilities )
 target_link_libraries( qtpixelator_test PUBLIC utilities )
-target_compile_definitions(qtpixelator_test PRIVATE -DDOCTEST_CONFIG_IMPLEMENT_WITH_MAIN)
+target_compile_definitions( qtpixelator_test PRIVATE -DDOCTEST_CONFIG_IMPLEMENT_WITH_MAIN )
+
+add_executable( source_image_test SourceImage.cpp )
+target_include_directories( source_image_test PRIVATE ${Qt5_DIR} ${DOCTEST_INCLUDE_DIR} )
+target_link_libraries( source_image_test PUBLIC Qt5::Core Qt5::Gui Qt5::Qml Qt5::Quick Qt5::Network )
+target_include_directories( source_image_test PUBLIC ${CMAKE_SOURCE_DIR}/utilities )
+target_link_libraries( source_image_test PUBLIC utilities )
+target_compile_definitions( source_image_test PRIVATE -DDOCTEST_CONFIG_IMPLEMENT_WITH_MAIN )
