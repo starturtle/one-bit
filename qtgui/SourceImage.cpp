@@ -245,7 +245,7 @@ namespace
         bottomRight.setX(topLeft.x() + actualHeight / targetAspectRatio);
       }
     }
-    else
+    else if (actualWidth < actualHeight)
     {
       qreal newBottomRightX{ topLeft.x() + actualHeight / targetAspectRatio };
       if (newBottomRightX < paintedWidth)
@@ -259,6 +259,17 @@ namespace
         bottomRight.setY(topLeft.y() + actualWidth / targetAspectRatio);
       }
     }
+    else if (targetAspectRatio > 1.)
+    {
+      // y > x, adjust x.
+      qreal newBottomRightX{ topLeft.x() + actualHeight / targetAspectRatio };
+      bottomRight.setX(newBottomRightX);
+    }
+    else
+    {
+      qreal newBottomRightY{ topLeft.y() + actualWidth * targetAspectRatio };
+      bottomRight.setY(newBottomRightY);
+    }
   }
   
   QString pointsToClippingInfo(const QPointF& topLeft, const QPointF& bottomRight)
@@ -271,4 +282,50 @@ namespace
     target.setX(source.x() * scalingFactor);
     target.setY(source.y() * scalingFactor);
   }
+}
+
+
+#include <doctest.h>
+
+TEST_CASE("test boundedMin") {
+  CHECK_EQ(boundedMin(1, 2, 3), 3);
+  CHECK_EQ(boundedMin(3, 2, 1), 2);
+}
+TEST_CASE("test boundedMax") {
+  CHECK_EQ(boundedMax(4, 3, 2), 2);
+  CHECK_EQ(boundedMax(2, 3, 4), 3);
+}
+TEST_CASE("test adjustToAspectRatio") {
+  QPointF topLeft{0, 0};
+  double targetAspectRatio{ 1. };
+  QPointF bottomRight{200, 250};
+  qreal paintedWidth{ 250 };
+  qreal paintedHeight{ 250 };
+
+  adjustToAspectRatio(topLeft, bottomRight, targetAspectRatio, paintedWidth, paintedHeight);
+  CHECK(std::abs(bottomRight.x() - 249) < 0.1);
+  CHECK(std::abs(bottomRight.y() - 249) < 0.1);
+
+  targetAspectRatio = .8;
+  adjustToAspectRatio(topLeft, bottomRight, targetAspectRatio, paintedWidth, paintedHeight);
+  CHECK(std::abs(bottomRight.x() - 249) < 0.1);
+  CHECK(std::abs(bottomRight.y() - 199.2) < 0.1);
+
+  targetAspectRatio = 2.;
+  adjustToAspectRatio(topLeft, bottomRight, targetAspectRatio, paintedWidth, paintedHeight);
+  CHECK(std::abs(bottomRight.x() - 124.5) < 0.1);
+  CHECK(std::abs(bottomRight.y() - 249) < 0.1);
+}
+
+TEST_CASE("test scalePoint") {
+  QPointF pointToScale{ 5., 5. };
+  QPoint target;
+
+  scalePoint(pointToScale, target, .5);
+  CHECK_EQ(target.x(), 2);
+  CHECK_EQ(target.x(), 2);
+
+  scalePoint(pointToScale, target, 4.);
+  CHECK_EQ(target.x(), 20);
+  CHECK_EQ(target.x(), 20);
 }
