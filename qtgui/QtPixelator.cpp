@@ -482,45 +482,45 @@ TEST_CASE("test divisors") {
   CHECK_NE(result.find(16), result.end());
 
   result = divisors(24);
-CHECK_EQ(result.size(), 8);
-CHECK_NE(result.find(1), result.end());
-CHECK_NE(result.find(2), result.end());
-CHECK_NE(result.find(3), result.end());
-CHECK_NE(result.find(4), result.end());
-CHECK_NE(result.find(6), result.end());
-CHECK_NE(result.find(8), result.end());
-CHECK_NE(result.find(12), result.end());
-CHECK_NE(result.find(24), result.end());
+  CHECK_EQ(result.size(), 8);
+  CHECK_NE(result.find(1), result.end());
+  CHECK_NE(result.find(2), result.end());
+  CHECK_NE(result.find(3), result.end());
+  CHECK_NE(result.find(4), result.end());
+  CHECK_NE(result.find(6), result.end());
+  CHECK_NE(result.find(8), result.end());
+  CHECK_NE(result.find(12), result.end());
+  CHECK_NE(result.find(24), result.end());
 
-result = divisors(36);
-CHECK_EQ(result.size(), 9);
-CHECK_NE(result.find(1), result.end());
-CHECK_NE(result.find(2), result.end());
-CHECK_NE(result.find(3), result.end());
-CHECK_NE(result.find(4), result.end());
-CHECK_NE(result.find(6), result.end());
-CHECK_NE(result.find(9), result.end());
-CHECK_NE(result.find(12), result.end());
-CHECK_NE(result.find(18), result.end());
-CHECK_NE(result.find(36), result.end());
+  result = divisors(36);
+  CHECK_EQ(result.size(), 9);
+  CHECK_NE(result.find(1), result.end());
+  CHECK_NE(result.find(2), result.end());
+  CHECK_NE(result.find(3), result.end());
+  CHECK_NE(result.find(4), result.end());
+  CHECK_NE(result.find(6), result.end());
+  CHECK_NE(result.find(9), result.end());
+  CHECK_NE(result.find(12), result.end());
+  CHECK_NE(result.find(18), result.end());
+  CHECK_NE(result.find(36), result.end());
 
-result = divisors(8192); // 2^13
-CHECK_EQ(result.size(), 14);
-unsigned factorInlist = 1;
-for (auto i = 0; i < 14; ++i)
-{
-  CHECK_NE(result.find(factorInlist), result.end());
-  factorInlist *= 2;
-}
+  result = divisors(8192); // 2^13
+  CHECK_EQ(result.size(), 14);
+  unsigned factorInlist = 1;
+  for (auto i = 0; i < 14; ++i)
+  {
+    CHECK_NE(result.find(factorInlist), result.end());
+    factorInlist *= 2;
+  }
 
-result = divisors(262144); // 2^18
-CHECK_EQ(result.size(), 19);
-factorInlist = 1;
-for (auto i = 0; i < 19; ++i)
-{
-  CHECK_NE(result.find(factorInlist), result.end());
-  factorInlist *= 2;
-}
+  result = divisors(262144); // 2^18
+  CHECK_EQ(result.size(), 19);
+  factorInlist = 1;
+  for (auto i = 0; i < 19; ++i)
+  {
+    CHECK_NE(result.find(factorInlist), result.end());
+    factorInlist *= 2;
+  }
 }
 
 TEST_CASE("test search_greatest_common_divisor") {

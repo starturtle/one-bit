@@ -4,6 +4,11 @@
 #include <algorithm>
 #include <vector>
 
+namespace
+{
+  bool isStringInVector(const std::string& in_string, const std::vector<std::string>& in_vector);
+}
+
 namespace one_bit
 {
 ArgumentParser::ArgumentParser(): parsers{initParser()}{}
@@ -70,12 +75,10 @@ std::map<std::string,std::function<bool(const std::string&)>> ArgumentParser::in
 
   bool ArgumentParser::parse_delegate_bool(const string& in_arg_val)
   {
-    static const std::vector<std::string> true_values{ "true", "True", "TRUE", "t", "y", "1" };
-    static const std::vector<std::string> false_values{ "false", "False", "FALSE", "f", "n", "0" };
-    if (std::find(true_values.begin(), true_values.end(), in_arg_val) != true_values.end())
-      return true;
-    if (std::find(false_values.begin(), false_values.end(), in_arg_val) != false_values.end())
-      return false;
+    if (isStringInVector(in_arg_val, { "true", "True", "TRUE", "t", "y", "1" })) return true;
+
+    if (isStringInVector(in_arg_val, { "false", "False", "FALSE", "f", "n", "0" })) return false;
+
     throw std::invalid_argument(in_arg_val + " doesn't evaluate to bool");
   }
 
@@ -101,6 +104,14 @@ std::map<std::string,std::function<bool(const std::string&)>> ArgumentParser::in
     if (in_arg_val == "BOTTOM_RIGHT") return CropRegion::BOTTOM_RIGHT;
     // value is optional, defaults to TOP_LEFT.
     return one_bit::CropRegion::TOP_LEFT;
+  }
+}
+
+namespace
+{
+  bool isStringInVector(const std::string& in_string, const std::vector<std::string>& in_vector)
+  {
+    return (std::find(in_vector.begin(), in_vector.end(), in_string) != in_vector.end());
   }
 }
 
@@ -167,11 +178,11 @@ TEST_CASE("test string parsing") {
     "", 
     "test", 
     "0xDEADBEEF", 
-    //"öäuß", 
+    "öäuß", 
     "1234", 
     "string with spaces",
-    //"this is a very long string that exceeds 256 characters, so we'll try and figure out whether the parser can cope with that, but it is very hard to come up with that amount of text, so this is mainly gibberish, and perhaps it's all in vain for parser failure",
-    //"$p€cial!", 
+    "this is a very long string that exceeds 256 characters, so we'll try and figure out whether the parser can cope with that, but it is very hard to come up with that amount of text, so this is mainly gibberish, and perhaps it's all in vain for parser failure",
+    "$p€cial!", 
     "_underscore", 
   };
   for (auto& str : testStrings)
@@ -221,32 +232,34 @@ TEST_CASE("test UiMode parsing") {
 TEST_CASE("test CropRegion parsing") {
   DoctestArgumentParser argParser;
   one_bit::ArgumentParser parserToTest;
+  auto fallbackRegion{ one_bit::CropRegion::TOP_LEFT };
+
   CHECK_EQ(argParser.getCropRegion("TOP_LEFT", parserToTest), one_bit::CropRegion::TOP_LEFT);
   CHECK_EQ(argParser.getCropRegion("TOP", parserToTest), one_bit::CropRegion::TOP);
   CHECK_EQ(argParser.getCropRegion("TOP_RIGHT", parserToTest), one_bit::CropRegion::TOP_RIGHT);
-  CHECK_EQ(argParser.getCropRegion("TOPF", parserToTest), one_bit::CropRegion::TOP_LEFT);
-  CHECK_EQ(argParser.getCropRegion("TABLE_TOP", parserToTest), one_bit::CropRegion::TOP_LEFT);
-  CHECK_EQ(argParser.getCropRegion("TO", parserToTest), one_bit::CropRegion::TOP_LEFT);
-  CHECK_EQ(argParser.getCropRegion("TOP_L", parserToTest), one_bit::CropRegion::TOP_LEFT);
-  CHECK_EQ(argParser.getCropRegion("TOP_R", parserToTest), one_bit::CropRegion::TOP_LEFT);
+  CHECK_EQ(argParser.getCropRegion("TOPF", parserToTest), fallbackRegion);
+  CHECK_EQ(argParser.getCropRegion("TABLE_TOP", parserToTest), fallbackRegion);
+  CHECK_EQ(argParser.getCropRegion("TO", parserToTest), fallbackRegion);
+  CHECK_EQ(argParser.getCropRegion("TOP_L", parserToTest), fallbackRegion);
+  CHECK_EQ(argParser.getCropRegion("TOP_R", parserToTest), fallbackRegion);
 
-  CHECK_EQ(argParser.getCropRegion("LEF", parserToTest), one_bit::CropRegion::TOP_LEFT);
+  CHECK_EQ(argParser.getCropRegion("LEF", parserToTest), fallbackRegion);
   CHECK_EQ(argParser.getCropRegion("LEFT", parserToTest), one_bit::CropRegion::LEFT);
-  CHECK_EQ(argParser.getCropRegion("LEFT_HANDED", parserToTest), one_bit::CropRegion::TOP_LEFT);
+  CHECK_EQ(argParser.getCropRegion("LEFT_HANDED", parserToTest), fallbackRegion);
 
-  CHECK_EQ(argParser.getCropRegion("CENTE", parserToTest), one_bit::CropRegion::TOP_LEFT);
+  CHECK_EQ(argParser.getCropRegion("CENTE", parserToTest), fallbackRegion);
   CHECK_EQ(argParser.getCropRegion("CENTER", parserToTest), one_bit::CropRegion::CENTER);
-  CHECK_EQ(argParser.getCropRegion("CENTERFOLD", parserToTest), one_bit::CropRegion::TOP_LEFT);
+  CHECK_EQ(argParser.getCropRegion("CENTERFOLD", parserToTest), fallbackRegion);
 
-  CHECK_EQ(argParser.getCropRegion("RIGH", parserToTest), one_bit::CropRegion::TOP_LEFT);
+  CHECK_EQ(argParser.getCropRegion("RIGH", parserToTest), fallbackRegion);
   CHECK_EQ(argParser.getCropRegion("RIGHT", parserToTest), one_bit::CropRegion::RIGHT);
-  CHECK_EQ(argParser.getCropRegion("WRIGHT", parserToTest), one_bit::CropRegion::TOP_LEFT);
-  CHECK_EQ(argParser.getCropRegion("RIGHT_WRONG", parserToTest), one_bit::CropRegion::TOP_LEFT);
+  CHECK_EQ(argParser.getCropRegion("WRIGHT", parserToTest), fallbackRegion);
+  CHECK_EQ(argParser.getCropRegion("RIGHT_WRONG", parserToTest), fallbackRegion);
 
-  CHECK_EQ(argParser.getCropRegion("BOTTO", parserToTest), one_bit::CropRegion::TOP_LEFT);
+  CHECK_EQ(argParser.getCropRegion("BOTTO", parserToTest), fallbackRegion);
   CHECK_EQ(argParser.getCropRegion("BOTTOM_LEFT", parserToTest), one_bit::CropRegion::BOTTOM_LEFT);
   CHECK_EQ(argParser.getCropRegion("BOTTOM", parserToTest), one_bit::CropRegion::BOTTOM);
   CHECK_EQ(argParser.getCropRegion("BOTTOM_RIGHT", parserToTest), one_bit::CropRegion::BOTTOM_RIGHT);
-  CHECK_EQ(argParser.getCropRegion("BIKINI_BOTTOM", parserToTest), one_bit::CropRegion::TOP_LEFT);
-  CHECK_EQ(argParser.getCropRegion("BOTTOMLINE", parserToTest), one_bit::CropRegion::TOP_LEFT);
+  CHECK_EQ(argParser.getCropRegion("BIKINI_BOTTOM", parserToTest), fallbackRegion);
+  CHECK_EQ(argParser.getCropRegion("BOTTOMLINE", parserToTest), fallbackRegion);
 }

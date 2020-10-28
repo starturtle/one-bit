@@ -141,19 +141,27 @@ class ColorTestPixelator : public imaging::Pixelator
 class FakeImageBufferTestPixelator : public imaging::Pixelator
 {
 public:
-  bool to_pixels(int, int, int, int, const one_bit::CropRegion) final { return true; }
-  FakeImageBufferTestPixelator() : Pixelator("") { pictureBuffer = ImgData(200, 200, CV_8UC3, cv::Scalar{ 60, 0, 255, 0 }); }
+  bool to_pixels(int, int, int, int, const one_bit::CropRegion) final { return theResult; }
+  FakeImageBufferTestPixelator() : Pixelator(""), theResult{ true } { pictureBuffer = ImgData(200, 200, CV_8UC3, cv::Scalar{ 60, 0, 255, 0 }); }
+  void setReturnValue(bool returnThis) { theResult = returnThis; }
+private:
+  bool theResult;
 };
 
 TEST_CASE("test pixelator run") {
+  ColorTestPixelator emptyPixer;
+  CHECK_THROWS(emptyPixer.run("invalid out path", 10, 10, 20, 20, one_bit::CropRegion::TOP_LEFT)); // should fail on writing
   FakeImageBufferTestPixelator pixer;
-  CHECK_THROWS(pixer.run("invalid out path", 10, 10, 20, 20, one_bit::CropRegion::TOP_LEFT)); // should fail on writing
   CHECK(pixer.run("valid_out_path.png", 10, 10, 20, 20, one_bit::CropRegion::TOP_LEFT)); // should succeed
+  pixer.setReturnValue(false);
+  CHECK_FALSE(pixer.run("valid_out_path.png", 10, 10, 20, 20, one_bit::CropRegion::TOP_LEFT)); // should fail
+  pixer.setReturnValue(true);
+  CHECK(pixer.run("valid_out_path.png", 10, 10, 20, 20, one_bit::CropRegion::TOP_LEFT)); // should succeed again
 }
 
 TEST_CASE("test pixelator prepare") {
   ColorTestPixelator pixer;
-  PixelValue white(255, 255, 255);
+  PixelValue white(0, 0, 255);
   PixelValue black(0, 0, 0);
   // initially no colors set
   CHECK_EQ(pixer.colorCount(), 0);
@@ -184,18 +192,21 @@ TEST_CASE("test adding color to pixelator") {
   CHECK_EQ(pixer.colorCount(), 0);
 
   size_t added_colors = 0;
-  std::vector<PixelValue> colors{ PixelValue(255, 255, 0), PixelValue(0, 255, 255), PixelValue(255, 0, 255) };
+  std::vector<PixelValue> colors{ PixelValue(150, 255, 255), PixelValue(90, 255, 255), PixelValue(30, 255, 255) };
   for (const auto& color : colors)
   {
+    // add the new color
     pixer.add_color(color);
     ++added_colors;
 
+    // check that the color list so far is OK
     CHECK_EQ(pixer.colorCount(), added_colors);
     for (size_t idx = 0; idx < colors.size(); ++idx)
     {
       CHECK_EQ(pixer.hasColor(colors[idx]), idx < added_colors);
     }
 
+    // try to re-add the new color, make sure it doesn't change anything
     pixer.add_color(color);
     CHECK_EQ(pixer.colorCount(), added_colors);
 
