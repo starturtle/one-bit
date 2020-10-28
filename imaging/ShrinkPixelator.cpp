@@ -145,3 +145,125 @@ namespace
     return a * b / gcd; //gcd * (a / gcd) * (b / gcd);
   }
 }
+
+#include <doctest.h>
+
+TEST_CASE("test divides") {
+  auto result = divides(25, 3);
+  CHECK(!result.has_value());
+
+  result = divides(24, 3);
+  CHECK(result.has_value());
+  CHECK_EQ(result.value(), 8);
+
+  result = divides(3, 3);
+  CHECK(result.has_value());
+  CHECK_EQ(result.value(), 1);
+
+  result = divides(16, 4);
+  CHECK(result.has_value());
+  CHECK_EQ(result.value(), 4);
+
+  result = divides(0, 2);
+  CHECK(result.has_value());
+  CHECK_EQ(result.value(), 0);
+
+  result = divides(5, 0);
+  CHECK(result.has_value());
+  CHECK_EQ(result.value(), 0);
+
+  result = divides(0, 0);
+  CHECK(result.has_value());
+  CHECK_EQ(result.value(), 0);
+
+  result = divides(1953125, 16777216);
+  CHECK(!result.has_value());
+}
+
+TEST_CASE("test divisors") {
+  std::vector<unsigned> result;
+
+  result = divisors(5);
+  CHECK_EQ(result.size(), 2);
+  CHECK_NE(std::find(result.begin(), result.end(), 1), result.end());
+  CHECK_NE(std::find(result.begin(), result.end(),5), result.end());
+
+  result = divisors(16);
+  CHECK_EQ(result.size(), 5);
+  CHECK_NE(std::find(result.begin(), result.end(),1), result.end());
+  CHECK_NE(std::find(result.begin(), result.end(),2), result.end());
+  CHECK_NE(std::find(result.begin(), result.end(),4), result.end());
+  CHECK_NE(std::find(result.begin(), result.end(),8), result.end()); 
+  CHECK_NE(std::find(result.begin(), result.end(),16), result.end());
+
+  result = divisors(24);
+  CHECK_EQ(result.size(), 8);
+  CHECK_NE(std::find(result.begin(), result.end(),1), result.end());
+  CHECK_NE(std::find(result.begin(), result.end(),2), result.end());
+  CHECK_NE(std::find(result.begin(), result.end(),3), result.end());
+  CHECK_NE(std::find(result.begin(), result.end(),4), result.end());
+  CHECK_NE(std::find(result.begin(), result.end(),6), result.end());
+  CHECK_NE(std::find(result.begin(), result.end(),8), result.end());
+  CHECK_NE(std::find(result.begin(), result.end(),12), result.end());
+  CHECK_NE(std::find(result.begin(), result.end(),24), result.end());
+
+  result = divisors(36);
+  CHECK_EQ(result.size(), 9);
+  CHECK_NE(std::find(result.begin(), result.end(),1), result.end());
+  CHECK_NE(std::find(result.begin(), result.end(),2), result.end());
+  CHECK_NE(std::find(result.begin(), result.end(),3), result.end());
+  CHECK_NE(std::find(result.begin(), result.end(),4), result.end());
+  CHECK_NE(std::find(result.begin(), result.end(),6), result.end());
+  CHECK_NE(std::find(result.begin(), result.end(),9), result.end());
+  CHECK_NE(std::find(result.begin(), result.end(),12), result.end());
+  CHECK_NE(std::find(result.begin(), result.end(),18), result.end());
+  CHECK_NE(std::find(result.begin(), result.end(),36), result.end());
+
+  result = divisors(8192); // 2^13
+  CHECK_EQ(result.size(), 14);
+  unsigned factorInlist = 1;
+  for (auto i = 0; i < 14; ++i)
+  {
+    CHECK_NE(std::find(result.begin(), result.end(),factorInlist), result.end());
+    factorInlist *= 2;
+  }
+
+  result = divisors(262144); // 2^18
+  CHECK_EQ(result.size(), 19);
+  factorInlist = 1;
+  for (auto i = 0; i < 19; ++i)
+  {
+    CHECK_NE(std::find(result.begin(), result.end(),factorInlist), result.end());
+    factorInlist *= 2;
+  }
+}
+
+TEST_CASE("test search_greatest_common_divisor") {
+  CHECK_EQ(search_greatest_common_divisor(5, 3), 1);
+  CHECK_EQ(search_greatest_common_divisor(59049, 262144), 1);
+  CHECK_EQ(search_greatest_common_divisor(1024, 262144), 1024);
+  CHECK_EQ(search_greatest_common_divisor(24, 36), 12);
+  CHECK_EQ(search_greatest_common_divisor(0, 36), 0);
+}
+
+TEST_CASE("test greatest_common_divisor") {
+  CHECK_EQ(greatest_common_divisor(5, 3), 1);
+  CHECK_EQ(greatest_common_divisor(262144, 59049), 1);
+  CHECK_EQ(greatest_common_divisor(262144, 1024), 1024);
+  CHECK_EQ(greatest_common_divisor(1024, 262144), 1024);
+  CHECK_EQ(greatest_common_divisor(36, 24), 12);
+  CHECK_EQ(greatest_common_divisor(36, 0), 0);
+}
+
+TEST_CASE("test pair-based least_common_multiple") {
+  CHECK_EQ(least_common_multiple(16, 8), 16);
+  CHECK_EQ(least_common_multiple(8, 16), 16);
+  CHECK_EQ(least_common_multiple(16, 18), 144);
+  CHECK_EQ(least_common_multiple(1, 15), 15);
+  CHECK_EQ(least_common_multiple(36, 24), 72);
+  CHECK_EQ(least_common_multiple(243, 1024), 243 * 1024); // power of 3 and power of 2 don't share factors
+
+  CHECK_EQ(least_common_multiple(0, 18), 0);
+  CHECK_EQ(least_common_multiple(18, 0), 0);
+  CHECK_EQ(least_common_multiple(0, 0), 0);
+}

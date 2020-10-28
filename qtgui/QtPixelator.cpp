@@ -577,6 +577,7 @@ const std::string qcolorToHexString(const QColor& in_color)
 }
 
 using idxType = int;
+
 TEST_CASE("test color difference calculus")
 {
   const std::vector<std::pair<std::string, QColor> > colors { 
@@ -619,8 +620,6 @@ TEST_CASE("test color difference calculus")
     std::cout << "Expecting distance " << distance << " for " << c1name << " (" << qcolorToHexString(color1) << ") and " << c2name << " (" << qcolorToHexString(color2) << ")" << std::endl;
     CHECK_EQ(colorDistance(color1, color2), distance);
   }
-
-  // TODO flesh out. tests should be extremely straightforward
 }
 
 #include <tuple>
