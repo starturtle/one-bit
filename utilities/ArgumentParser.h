@@ -6,11 +6,27 @@
 #include "Property.hpp"
 #include "setting_enums.h"
 
+namespace one_bit
+{
+  class ArgumentParser;
+}
+class DoctestArgumentParser
+{
+public:
+  int getInt(const std::string& stringToParse, one_bit::ArgumentParser& argParser);
+  std::string getString(const std::string& stringToParse, one_bit::ArgumentParser& argParser);
+  bool getBool(const std::string& stringToParse, one_bit::ArgumentParser& argParser);
+  one_bit::UiMode getUiMode(const std::string& stringToParse, one_bit::ArgumentParser& argParser);
+  one_bit::CropRegion getCropRegion(const std::string& stringToParse, one_bit::ArgumentParser& argParser);
+};
 using string = std::string;
 namespace one_bit
 {
 class ArgumentParser
 {
+#ifndef DOCTEST_CONFIG_DISABLE
+  friend class DoctestArgumentParser;
+#endif
   OPTIONAL_PROPERTY(int, height)
   OPTIONAL_PROPERTY(int, width)
   OPTIONAL_PROPERTY(int, gauge_stitches)

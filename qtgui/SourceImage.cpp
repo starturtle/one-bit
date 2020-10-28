@@ -286,8 +286,6 @@ namespace
 
 
 #include <doctest.h>
-#include <iomanip>
-#include <sstream>
 
 TEST_CASE("test boundedMin") {
   CHECK_EQ(boundedMin(1, 2, 3), 3);
