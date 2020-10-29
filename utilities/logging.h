@@ -8,9 +8,9 @@ namespace logging
   enum class Level : int
   {
     DEBUG = 0,
-    INFO,
+    NOTE,
     WARNING,
-    ERROR,
+    ERR,
     SELF_DESTRUCT,
     OFF,
   };

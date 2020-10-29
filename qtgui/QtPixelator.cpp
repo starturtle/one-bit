@@ -38,19 +38,19 @@ errors::Code QtPixelator::run(){
     QImage colorMap = pixelate();
     if (colorMap.isNull())
     {
-      logging::LogStream::instance() << logging::Level::ERROR << "Color map is NULL!" << logging::Level::OFF;
+      logging::LogStream::instance() << logging::Level::ERR << "Color map is NULL!" << logging::Level::OFF;
       return errors::PIXELATION_ERROR;
     }
     if (!scalePixels(colorMap))
     {
-      logging::LogStream::instance() << logging::Level::ERROR << "Failed to scale for pixelation" << logging::Level::OFF;
+      logging::LogStream::instance() << logging::Level::ERR << "Failed to scale for pixelation" << logging::Level::OFF;
       return errors::PAINT_ERROR;
     }
     drawHelpers();
   }
   else
   {
-    logging::LogStream::instance() << logging::Level::ERROR << "Failed to verify input: " << result << logging::Level::OFF;
+    logging::LogStream::instance() << logging::Level::ERR << "Failed to verify input: " << result << logging::Level::OFF;
   }
   pixelationCreated();
   return errors::NONE;
@@ -60,7 +60,7 @@ errors::Code QtPixelator::commit()
 {
   if (storagePath.isEmpty())
   {
-    logging::LogStream::instance() << logging::Level::ERROR << "No output path set!" << logging::Level::OFF;
+    logging::LogStream::instance() << logging::Level::ERR << "No output path set!" << logging::Level::OFF;
     return errors::WRONG_OUTPUT_FILE;
   }
   
@@ -70,14 +70,14 @@ errors::Code QtPixelator::commit()
     return errors::NONE;
   }
 
-  logging::LogStream::instance() << logging::Level::ERROR << "Could not write result" << logging::Level::OFF;
+  logging::LogStream::instance() << logging::Level::ERR << "Could not write result" << logging::Level::OFF;
   return errors::WRITE_ERROR;
 }
 
 errors::Code QtPixelator::setInputImage(const QImage& in_image)
 {
   const std::string input{ in_image.isNull() ? " to NULL" : "" };
-  logging::LogStream::instance() << logging::Level::ERROR << "Setting input file" << input << logging::Level::OFF;
+  logging::LogStream::instance() << logging::Level::ERR << "Setting input file" << input << logging::Level::OFF;
   imageBuffer = in_image;
   return imageBuffer.isNull() ? errors::WRONG_INPUT_FILE : errors::NONE;
 }
@@ -94,7 +94,7 @@ errors::Code QtPixelator::setStitchSizes(const int& in_width, const int& in_heig
 {
   if (in_width <= 0 || in_height <= 0 || in_rowsPerGauge <= 0 || in_stitchesPerGauge <= 0)
   {
-    logging::LogStream::instance() << logging::Level::ERROR << "Bad input " << in_width << "x" << in_height << "cm with " << in_stitchesPerGauge << "st, " << in_rowsPerGauge << "r per 10x10cm" << logging::Level::OFF;
+    logging::LogStream::instance() << logging::Level::ERR << "Bad input " << in_width << "x" << in_height << "cm with " << in_stitchesPerGauge << "st, " << in_rowsPerGauge << "r per 10x10cm" << logging::Level::OFF;
     return errors::INVALID_IMAGE_SIZES;
   }
   logging::LogStream::instance() << logging::Level::DEBUG << "Result will have " << in_width << "x" << in_height << "cm with " << in_stitchesPerGauge << "st, " << in_rowsPerGauge << "r per 10x10cm" << logging::Level::OFF;

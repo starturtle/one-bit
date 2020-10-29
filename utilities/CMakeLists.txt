@@ -20,4 +20,8 @@ if(${BUILD_TESTING})
   target_include_directories( test_calculus PUBLIC ${CMAKE_SOURCE_DIR}/utilities "${DOCTEST_INCLUDE_DIR}" )
   target_link_libraries( test_calculus PUBLIC utilities )
   target_compile_definitions( test_calculus PRIVATE -DDOCTEST_CONFIG_IMPLEMENT_WITH_MAIN )
+  
+  add_executable( test_logging logging.cpp )
+  target_include_directories( test_logging PUBLIC ${CMAKE_SOURCE_DIR}/utilities "${DOCTEST_INCLUDE_DIR}" )
+  target_compile_definitions( test_logging PRIVATE -DDOCTEST_CONFIG_IMPLEMENT_WITH_MAIN )
 endif()
