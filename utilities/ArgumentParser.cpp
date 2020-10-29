@@ -115,48 +115,30 @@ namespace
   }
 }
 
+#ifdef DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+
 #include <doctest.h>
 
 int DoctestArgumentParser::getInt(const std::string& stringToParse, one_bit::ArgumentParser& argParser)
 {
-#ifdef DOCTEST_CONFIG_DISABLE
-  return -1;
-#else
   return argParser.parse_delegate_int(stringToParse);
-#endif
 }
 
 std::string DoctestArgumentParser::getString(const std::string& stringToParse, one_bit::ArgumentParser& argParser)
 {
-#ifdef DOCTEST_CONFIG_DISABLE
-  return stringToParse;
-#else
   return argParser.parse_delegate_string(stringToParse);
-#endif
 }
 bool DoctestArgumentParser::getBool(const std::string& stringToParse, one_bit::ArgumentParser& argParser)
 {
-#ifdef DOCTEST_CONFIG_DISABLE
-  return false;
-#else
   return argParser.parse_delegate_bool(stringToParse);
-#endif
 }
 one_bit::UiMode DoctestArgumentParser::getUiMode(const std::string& stringToParse, one_bit::ArgumentParser& argParser)
 {
-#ifdef DOCTEST_CONFIG_DISABLE
-  return one_bit::UiMode::NONE;
-#else
   return argParser.parse_delegate_UiMode(stringToParse);
-#endif
 }
 one_bit::CropRegion DoctestArgumentParser::getCropRegion(const std::string& stringToParse, one_bit::ArgumentParser& argParser)
 {
-#ifdef DOCTEST_CONFIG_DISABLE
-  return one_bit::CropRegion::TOP_LEFT;
-#else
   return argParser.parse_delegate_CropRegion(stringToParse);
-#endif
 }
 
 TEST_CASE("test integer parsing") {
@@ -263,3 +245,4 @@ TEST_CASE("test CropRegion parsing") {
   CHECK_EQ(argParser.getCropRegion("BIKINI_BOTTOM", parserToTest), fallbackRegion);
   CHECK_EQ(argParser.getCropRegion("BOTTOMLINE", parserToTest), fallbackRegion);
 }
+#endif

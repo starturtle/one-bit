@@ -284,7 +284,7 @@ namespace
   }
 }
 
-
+#ifdef DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest.h>
 
 TEST_CASE("test boundedMin") {
@@ -329,3 +329,4 @@ TEST_CASE("test scalePoint") {
   CHECK_EQ(target.x(), 20);
   CHECK_EQ(target.x(), 20);
 }
+#endif

@@ -26,18 +26,22 @@ namespace gui_mode
     {
       return errors::QT_ERROR;
     }
+
     if (-1 == qmlRegisterType<SourceImage>("starturtle.oneBit", 1, 0, "SourceImage"))
     {
       return errors::QT_ERROR;
     }
+
     if (-1 == qmlRegisterType<ResultImage>("starturtle.oneBit", 1, 0, "ResultImage"))
     {
       return errors::QT_ERROR;
     }
+
     if (-1 == qRegisterMetaType<std::vector<QColor>>()) // for color array in QtPixelator
     {
       return errors::QT_ERROR;
     }
+
     logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "UI App set up!" << std::endl;
 
     // connect to application engine

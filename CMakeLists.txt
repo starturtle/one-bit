@@ -28,12 +28,14 @@ endif()
 # executable setup
 add_executable( one_bit main.cpp script_mode.h script_mode.cpp ${RESOURCES})
 
-target_include_directories( one_bit PUBLIC ${OpenCV_INCLUDE_DIRS} ${DOCTEST_INCLUDE_DIR})
+target_include_directories( one_bit PUBLIC ${OpenCV_INCLUDE_DIRS})
 target_link_libraries( one_bit PUBLIC imaging utilities ${OpenCV_LIBS} )
 if( ${USE_QT5} )
   target_include_directories( one_bit PUBLIC ${Qt5_DIR} )
   target_link_libraries( one_bit PUBLIC qtgui Qt5::Core Qt5::Gui Qt5::Qml Qt5::Quick Qt5::Network )
 endif()
 
-enable_testing()
+if("${DOCTEST_INCLUDE_DIR}")
+  enable_testing()
+endif()
 
