@@ -12,17 +12,20 @@ namespace logging
     WARNING,
     ERROR,
     SELF_DESTRUCT,
+    OFF,
   };
 
   class LogStream
   {
-    std::ostream& m_outStream;
-    std::ofstream m_nullStream;
-    Level m_minLogLevel;
     LogStream();
   public:
     static LogStream& instance();
     void setLogLevel(Level logLevel);
-    std::ostream& getLogStream(Level logLevel);
+    template<typename T>
+    LogStream& operator<<(T arg);
+  private:
+    std::ostream& m_outStream;
+    Level m_minLogLevel;
+    Level m_currentLogLevel;
   };
 }

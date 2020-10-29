@@ -42,7 +42,7 @@ namespace gui_mode
       return errors::QT_ERROR;
     }
 
-    logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "UI App set up!" << std::endl;
+    logging::LogStream::instance() << logging::Level::DEBUG << "UI App set up!" << logging::Level::OFF;
 
     // connect to application engine
     QQmlApplicationEngine engine;
@@ -53,7 +53,7 @@ namespace gui_mode
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
       &uiApp, failureSlot, Qt::QueuedConnection);
     engine.load(url);
-    logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "UI engine connected!" << std::endl;
+    logging::LogStream::instance() << logging::Level::DEBUG << "UI engine connected!" << logging::Level::OFF;
 
     return uiApp.exec();
   }

@@ -35,7 +35,7 @@ SourceImage::SourceImage(QQuickItem* parent)
 void SourceImage::mousePressEvent(QMouseEvent* theEvent)
 {
   newStartingPoint = { theEvent->localPos().x(), theEvent->localPos().y() };
-  logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "MousePress: top left is " << newTopLeft.x() << ", " << newTopLeft.y() << std::endl;
+  logging::LogStream::instance() << logging::Level::DEBUG << "MousePress: top left is " << newTopLeft.x() << ", " << newTopLeft.y() << logging::Level::OFF;
 }
 
 void SourceImage::mouseMoveEvent(QMouseEvent* theEvent)
@@ -43,7 +43,7 @@ void SourceImage::mouseMoveEvent(QMouseEvent* theEvent)
   if (theEvent->buttons() & Qt::MouseButton::LeftButton)
   {
     QRectF bounds = boundingRect();
-    logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "MouseMove: boundingRect " << bounds.width() << ", " << bounds.height() << std::endl;
+    logging::LogStream::instance() << logging::Level::DEBUG << "MouseMove: boundingRect " << bounds.width() << ", " << bounds.height() << logging::Level::OFF;
     QPointF tl = { boundedMin(newStartingPoint.x(), theEvent->localPos().x(), 0), boundedMin(newStartingPoint.y(), theEvent->localPos().y(), 0) };
     QPointF br = { boundedMax(newStartingPoint.x(), theEvent->localPos().x(), bounds.width() - 1), boundedMax(newStartingPoint.y(), theEvent->localPos().y(), bounds.height() - 1) };
     newTopLeft = tl;
@@ -51,7 +51,7 @@ void SourceImage::mouseMoveEvent(QMouseEvent* theEvent)
     abort = (theEvent->buttons() & Qt::MouseButton::RightButton);
     if (! abort)
     {
-      logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "MouseMove: top left is " << newTopLeft.x() << ", " << newTopLeft.y() << ", bottom right is " << newBottomRight.x() << ", " << newBottomRight.y() << std::endl;
+      logging::LogStream::instance() << logging::Level::DEBUG << "MouseMove: top left is " << newTopLeft.x() << ", " << newTopLeft.y() << ", bottom right is " << newBottomRight.x() << ", " << newBottomRight.y() << logging::Level::OFF;
       update();
     }
   }
@@ -61,7 +61,7 @@ void SourceImage::mouseReleaseEvent(QMouseEvent* theEvent)
 {
   if (abort)
   {
-    logging::LogStream::instance().getLogStream(logging::Level::INFO) << "MouseRelease (aborted)" << std::endl;
+    logging::LogStream::instance() << logging::Level::INFO << "MouseRelease (aborted)" << logging::Level::OFF;
   }
   else
   {
@@ -71,14 +71,14 @@ void SourceImage::mouseReleaseEvent(QMouseEvent* theEvent)
     topLeft = tl;
     bottomRight = br;
 
-    logging::LogStream::instance().getLogStream(logging::Level::INFO) << "MouseRelease: top left is " << topLeft.x() << ", " << topLeft.y() << ", bottom right is " << bottomRight.x() << ", " << bottomRight.y() << std::endl;
+    logging::LogStream::instance() << logging::Level::INFO << "MouseRelease: top left is " << topLeft.x() << ", " << topLeft.y() << ", bottom right is " << bottomRight.x() << ", " << bottomRight.y() << logging::Level::OFF;
   }
   newStartingPoint = { -1, -1 };
   newTopLeft = { -1, -1 };
   newBottomRight = { -1, -1 };
   update(); // triggers paint(...)
-  logging::LogStream::instance().getLogStream(logging::Level::INFO) << "Clipping to (" << clipTopLeft.x() << ", " << clipTopLeft.y() << ")/(" << clipBottomRight.x() << ", " << clipBottomRight.y() << ")" << std::endl;
-  logging::LogStream::instance().getLogStream(logging::Level::INFO) << "Based on (" << topLeft.x() << ", " << topLeft.y() << ")/(" << bottomRight.x() << ", " << bottomRight.y() << ")" << std::endl;
+  logging::LogStream::instance() << logging::Level::INFO << "Clipping to (" << clipTopLeft.x() << ", " << clipTopLeft.y() << ")/(" << clipBottomRight.x() << ", " << clipBottomRight.y() << ")" << logging::Level::OFF;
+  logging::LogStream::instance() << logging::Level::INFO << "Based on (" << topLeft.x() << ", " << topLeft.y() << ")/(" << bottomRight.x() << ", " << bottomRight.y() << ")" << logging::Level::OFF;
 }
 
 void SourceImage::setPath(const QUrl& data)
@@ -86,7 +86,7 @@ void SourceImage::setPath(const QUrl& data)
   filePath = data;
   image.load(data.toLocalFile());
   const std::string fileQuality{ image.isNull() ? "empty " : "" };
-  logging::LogStream::instance().getLogStream(logging::Level::INFO) << "Loaded a new " << fileQuality << "file" << std::endl;
+  logging::LogStream::instance() << logging::Level::INFO << "Loaded a new " << fileQuality << "file" << logging::Level::OFF;
   topLeft = { 0, 0 };
   QRectF bounds = boundingRect();
   bottomRight = { bounds.width() - 1, bounds.height() - 1 };
@@ -94,20 +94,20 @@ void SourceImage::setPath(const QUrl& data)
   newBottomRight = { -1, -1 };
   clipTopLeft = { 0, 0 };
   clipBottomRight = { image.width() - 1, image.height() - 1 };
-  logging::LogStream::instance().getLogStream(logging::Level::INFO) << "File Size is " << image.width() << "x" << image.height() << std::endl;
+  logging::LogStream::instance() << logging::Level::INFO << "File Size is " << image.width() << "x" << image.height() << logging::Level::OFF;
   update(); // triggers paint(...)
 }
 
 void SourceImage::setResultWidth(const int& width)
 {
-  logging::LogStream::instance().getLogStream(logging::Level::INFO) << "new width: " << width << std::endl;
+  logging::LogStream::instance() << logging::Level::INFO << "new width: " << width << logging::Level::OFF;
   resultSize.setX(width);
   update(); // triggers paint(...)
 }
 
 void SourceImage::setResultHeight(const int& height)
 {
-  logging::LogStream::instance().getLogStream(logging::Level::INFO) << "new height: " << height << std::endl;
+  logging::LogStream::instance() << logging::Level::INFO << "new height: " << height << logging::Level::OFF;
   resultSize.setY(height);
   update(); // triggers paint(...)
 }
@@ -152,10 +152,10 @@ QImage SourceImage::data() const
     scaled = image.scaledToHeight(bounds.height());
   }
   auto returnValue{ scaled.copy(QRectF(topLeft, bottomRight).toRect()) };
-  logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "Clipping to (" << clipTopLeft.x() << ", " << clipTopLeft.y() << ")/(" << clipBottomRight.x() << ", " << clipBottomRight.y() << ")" << std::endl;
+  logging::LogStream::instance() << logging::Level::DEBUG << "Clipping to (" << clipTopLeft.x() << ", " << clipTopLeft.y() << ")/(" << clipBottomRight.x() << ", " << clipBottomRight.y() << ")" << logging::Level::OFF;
   const std::string outputIsValid{ returnValue.isNull() ? "empty " : "" };
   const std::string inputIsValid{ image.isNull() ? "empty " : "" };
-  logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "Returning " << outputIsValid << "file copied from " << inputIsValid << "input" << std::endl;
+  logging::LogStream::instance() << logging::Level::DEBUG << "Returning " << outputIsValid << "file copied from " << inputIsValid << "input" << logging::Level::OFF;
   return returnValue;
 }
 
