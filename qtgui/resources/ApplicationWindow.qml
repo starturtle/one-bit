@@ -1,7 +1,7 @@
 import QtQuick 2.12
 import QtQuick.Controls 2.14
 import QtQuick.Layouts 1.14
-import starturtle.oneBit 1.0
+import starturtle.stixelator 1.0
 
 ApplicationWindow {
   id: mainWindow
@@ -11,24 +11,24 @@ ApplicationWindow {
   title: qsTr("Image Pixelation")
 
   menuBar: MenuBar {
-    Menu {
-      title: qsTr("File")
-      MenuItem {
-        text: qsTr("&Load")
-        onTriggered: {
-          imagePreview.getInputFile()
-        }
+    MenuBarItem {
+      text: qsTr("&Open...")
+      icon.name: "document-open"
+      onTriggered: {
+        imagePreview.getInputFile()
       }
-      MenuItem {
-        text: qsTr("&Save as...")
-        onTriggered: {
-          imagePreview.getOutputFile()
-        }
+    }
+    MenuBarItem {
+      text: qsTr("&Save as...")
+      icon.name: "document-save"
+      onTriggered: {
+        imagePreview.getOutputFile()
       }
-      MenuItem {
-        text: qsTr("Exit")
-        onTriggered: Qt.quit();
-      }
+    }
+    MenuBarItem {
+      text: qsTr("&Quit")
+      icon.name: "application-exit"
+      onTriggered: Qt.quit();
     }
   }
 
