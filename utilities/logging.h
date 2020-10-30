@@ -17,12 +17,16 @@ namespace logging
 
   class LogStream
   {
-    LogStream();
   public:
     static LogStream& instance();
     void setLogLevel(Level logLevel);
     template<typename T>
     LogStream& operator<<(T arg);
+  protected:
+    LogStream();
+    virtual std::ostream& getOutStream();
+    Level getMinimumLogLevel() const;
+    Level getLogLevel() const;
   private:
     std::ostream& m_outStream;
     Level m_minLogLevel;
