@@ -4,15 +4,13 @@ import QtQuick.Dialogs 1.3
 import QtQuick.Layouts 1.14
 
 Pane {
-  Layout.alignment: Qt.AlignTop | Qt.AlignLeft
-  Layout.margins: 0
   property color pixelColor: color("black")
   
   Button {
-    id: changeButton
-    text: ""
     Layout.alignment: Qt.AlignTop | Qt.AlignLeft
     Layout.margins: 0
+    id: changeButton
+    text: ""
     width: 25
     height: 25
     background: Rectangle {
@@ -24,7 +22,8 @@ Pane {
       radius: 4
     }
     onClicked: {
-       colorChooser.open()
+      colorChooser.currentColor = pixelColor
+      colorChooser.open()
     }
   }
   ColorDialog {
