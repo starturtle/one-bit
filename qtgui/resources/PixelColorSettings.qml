@@ -7,19 +7,19 @@ Pane {
   property color pixelColor: color("black")
   
   GridLayout {
-    columns: 2
-    Rectangle {
-      id: colorLabel
-      color: pixelColor
-      width: 100
-      height: 30
-      border.color: "white"
-    }
     Button {
       id: changeButton
-      text: "Change"
-      width: 100
+      text: ""
+      width: 30
       height: 30
+      background: Rectangle {
+        implicitWidth: 30
+        implicitHeight: 30
+        color: pixelColor
+        border.color: "white"
+        border.width: 1
+        radius: 4
+      }
       onClicked: {
          colorChooser.open()
       }
