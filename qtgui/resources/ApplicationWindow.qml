@@ -51,7 +51,7 @@ ApplicationWindow {
   
     PixelColors {
       id: pixelColors
-      Layout.fillWidth: true
+      Layout.fillWidth: false
       onColorsChanged: {
         pixelator.setStitchColors(pixelColors.colors)
         pixelator.run()
