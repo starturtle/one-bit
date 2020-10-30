@@ -4,10 +4,11 @@ import QtQuick.Layouts 1.14
 
 Pane {
   GridLayout {
-    columns: 2
+    columns: 4
     Button {
       id: add
       text: "Add"
+      Layout.columnSpan: 2
       onClicked: {
         if (! cols3.visible)
         {
@@ -24,6 +25,7 @@ Pane {
     Button {
       id: remove
       text: "Remove"
+      Layout.columnSpan: 2
       onClicked: {
         if (cols4.visible)
         {
