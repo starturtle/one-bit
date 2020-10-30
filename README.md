@@ -9,9 +9,6 @@ To solve the problem, I started painting over digital images, hoping the gauge w
 
 ### Requirements
 Disclaimer: I have not made any experiments wrt backwards compatibility yet. 
-#### OpenCV
-This project requires [OpenCV](https://opencv.org/releases/) to be built. I'm working with version 4.2.
-The opencv root folder must be part of your CMAKE_MODULE_PATH. 
 #### CMake
 Configuration of this project requires [CMake](https://cmake.org/download/) to be installed. I'm using 3.15.2. You need CTest if you wish to build the unit tests.
 #### Qt5
@@ -25,24 +22,6 @@ Doctest is header only, so it doesn't technically get installed. To use it with 
 
 ### Input Data
 The input image must be of JPG or PNG format. Note that for proper pixelation, you need to know the gauge and colors of your yarn and the desired size of the workpiece. 
-
-### Shell Mode
-From the gauge and result size, the amount and dimensions of one "stixel" (stitch-sized pixel) can directly be computed. 
-The algorithm will then determine the overall color of that stixel in original colors, then figure out which of the yarn colors comes closest. 
-In shell mode, you can only specify where to crop the image if its aspect ratio doesn't match your output. Your choice is one of:
-* TOP_LEFT
-* TOP
-* TOP_RIGHT
-* LEFT
-* CENTER
-* RIGHT
-* BOTTOM_LEFT
-* BOTTOM
-* BOTTOM_RIGHT
-
-The output image will be a cropped version of the original one, set as stixels of the aspect ratio computed earlier and of the color determined in the previous step. 
-
-Note that for successful computation, you must specify an output path. The input file is not overwritten unless you explicitly define its path as the output file. 
 
 ### GUI Mode
 Select the input file from the File menu using "Load...". If successful, the image will show in the input window, and a first preview will be calculated.
