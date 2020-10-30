@@ -1,7 +1,7 @@
 import QtQuick 2.12
 import QtQuick.Controls 2.14
 import QtQuick.Layouts 1.14
-import starturtle.oneBit 1.0
+import starturtle.stixelator 1.0
 
 ApplicationWindow {
   id: mainWindow

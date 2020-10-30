@@ -11,28 +11,35 @@ namespace gui_mode
 {
   int run_as_window(int argc, char* argv[], const one_bit::ArgumentParser& in_params)
   {
+    const unsigned majorVersion{ 1 };
+    const unsigned minorVersion{ 0 };
+    const std::string versionString{ std::to_string(majorVersion) + "." + std::to_string(minorVersion) };
+    const std::string orgName{ "starturtle" };
+    const std::string appName{ "stixelator" };
+    const std::string appUri{ orgName + "." + appName };
+
     // initialize application
     logging::logger().setLogLevel(logging::Level::DEBUG);
-    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+    QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 
     QGuiApplication uiApp(argc, argv);
-    uiApp.setOrganizationName("starturtle");
+    uiApp.setOrganizationName(orgName.c_str());
     uiApp.setOrganizationDomain("org");
-    uiApp.setApplicationName("one-bit");
-    uiApp.setApplicationVersion("1.0");
+    uiApp.setApplicationName(appName.c_str());
+    uiApp.setApplicationVersion(versionString.c_str());
 
     // register actual pixelation execution object
-    if (-1 == qmlRegisterType<QtPixelator>("starturtle.oneBit", 1, 0, "QtPixelator"))
+    if (-1 == qmlRegisterType<QtPixelator>(appUri.c_str(), majorVersion, minorVersion, "QtPixelator"))
     {
       return errors::QT_ERROR;
     }
 
-    if (-1 == qmlRegisterType<SourceImage>("starturtle.oneBit", 1, 0, "SourceImage"))
+    if (-1 == qmlRegisterType<SourceImage>(appUri.c_str(), majorVersion, minorVersion, "SourceImage"))
     {
       return errors::QT_ERROR;
     }
 
-    if (-1 == qmlRegisterType<ResultImage>("starturtle.oneBit", 1, 0, "ResultImage"))
+    if (-1 == qmlRegisterType<ResultImage>(appUri.c_str(), majorVersion, minorVersion, "ResultImage"))
     {
       return errors::QT_ERROR;
     }
