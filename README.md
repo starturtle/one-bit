@@ -1,4 +1,4 @@
-# one-bit
+# stixelator
 
 ## Motivation
 This tool is aimed at people crafting with thread, in the more literal sense of the word. That is knitting, crocheting, stitching, you name it. 

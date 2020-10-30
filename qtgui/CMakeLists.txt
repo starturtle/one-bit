@@ -19,6 +19,7 @@ target_link_libraries( qtgui PUBLIC utilities )
 qtquick_compiler_add_resources( RESOURCES resources/one-bit-resources.qrc )
 
 if(DOCTEST_INCLUDE_DIR)
+  message(STATUS "build qtgui tests")
   add_executable( test_qtpixelator QtPixelator.cpp )
   target_include_directories( test_qtpixelator PRIVATE ${Qt5_DIR} "${DOCTEST_INCLUDE_DIR}" )
   target_include_directories( test_qtpixelator PUBLIC ${CMAKE_SOURCE_DIR}/utilities )

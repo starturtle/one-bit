@@ -261,17 +261,17 @@ TEST_CASE("test pair-based least_common_multiple") {
 
 TEST_CASE("test vector-based least_common_multiple")
 {
-  CHECK_EQ(calculus::least_common_multiple({ 16, 8 }), 16);
-  CHECK_EQ(calculus::least_common_multiple({ 8, 16 }), 16);
-  CHECK_EQ(calculus::least_common_multiple({ 12, 16, 18 }), 144);
-  CHECK_EQ(calculus::least_common_multiple({ 1, 15 }), 15);
-  CHECK_EQ(calculus::least_common_multiple({ 36, 24, 9 }), 72);
-  CHECK_EQ(calculus::least_common_multiple({ 243, 1024 }), 243 * 1024); // don't share factors
-  CHECK_EQ(calculus::least_common_multiple({ 125, 243, 1024 }), 125 * 243 * 1024); // don't share factors
+  CHECK_EQ(least_common_multiple({ 16, 8 }), 16);
+  CHECK_EQ(least_common_multiple({ 8, 16 }), 16);
+  CHECK_EQ(least_common_multiple({ 12, 16, 18 }), 144);
+  CHECK_EQ(least_common_multiple({ 1, 15 }), 15);
+  CHECK_EQ(least_common_multiple({ 36, 24, 9 }), 72);
+  CHECK_EQ(least_common_multiple({ 243, 1024 }), 243 * 1024); // don't share factors
+  CHECK_EQ(least_common_multiple({ 125, 243, 1024 }), 125 * 243 * 1024); // don't share factors
 
-  CHECK_EQ(calculus::least_common_multiple({ 0, 18, 9 }), 0);
-  CHECK_EQ(calculus::least_common_multiple({ 18, 0 }), 0);
-  CHECK_EQ(calculus::least_common_multiple({ 0, 0 }), 0);
+  CHECK_EQ(least_common_multiple({ 0, 18, 9 }), 0);
+  CHECK_EQ(least_common_multiple({ 18, 0 }), 0);
+  CHECK_EQ(least_common_multiple({ 0, 0 }), 0);
 }
 
 #endif
