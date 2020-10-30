@@ -14,12 +14,9 @@ Pane {
     width: 25
     height: 25
     background: Rectangle {
-      implicitWidth: 25
-      implicitHeight: 25
       color: pixelColor
       border.color: "white"
       border.width: 1
-      radius: 4
     }
     onClicked: {
       colorChooser.currentColor = pixelColor

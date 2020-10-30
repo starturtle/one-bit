@@ -4,15 +4,13 @@ import QtQuick.Layouts 1.14
 
 Pane {
   Layout.alignment: Qt.AlignTop | Qt.AlignLeft
-  Layout.margins: 1
+  Layout.margins: 0
   GridLayout {
-    rowSpacing: 1
-    columnSpacing: 0
-    columns: 6
+    columns: 8
     Button {
       id: add
       text: "Add"
-      Layout.columnSpan: 3
+      Layout.columnSpan: 4
       onClicked: {
         if (! cols3.visible)
         {
@@ -109,7 +107,7 @@ Pane {
     Button {
       id: remove
       text: "Remove"
-      Layout.columnSpan: 3
+      Layout.columnSpan: 4
       onClicked: {
         if (cols24.visible)
         {

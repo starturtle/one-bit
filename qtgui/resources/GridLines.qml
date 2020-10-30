@@ -4,9 +4,7 @@ import QtQuick.Layouts 1.14
 
 Pane {
   GridLayout {
-    Layout.margins: 1
-    rowSpacing: 2
-    columnSpacing: 1
+    Layout.margins: 0 
     columns: 2
     CheckBox {
       id: enableButton
