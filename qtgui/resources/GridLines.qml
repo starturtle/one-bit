@@ -4,6 +4,7 @@ import QtQuick.Layouts 1.14
 
 Pane {
   GridLayout {
+    Layout.margins: 0 
     columns: 2
     CheckBox {
       id: enableButton
@@ -11,21 +12,25 @@ Pane {
       text: "Enable grid"
       checked: true
     }
+    Label {
+      text: "primary color"
+    }
     PixelColorSettings {
       id: priColor
-      Layout.columnSpan: 2
-      colorName: "primary"
       pixelColor: "red"
+    }
+    
+    Label {
+      text: "secondary color"
     }
     PixelColorSettings {
       id: secColor
-      Layout.columnSpan: 2
-      colorName: "secondary"
       pixelColor: "darkgray"
     }
+    
     Label {
       id: lbPriWidth
-      text: "Stixels per primary grid line"
+      text: "St. per primary grid line"
     }
     TextInput {
       id: priWidth
@@ -35,6 +40,7 @@ Pane {
       verticalAlignment: TextInput.AlignVCenter
     }
   }
+  
   signal settingsChanged()
   Component.onCompleted: {
     enableButton.toggled.connect(settingsChanged)
@@ -42,6 +48,7 @@ Pane {
     secColor.pixelColorChanged.connect(settingsChanged)
     priWidth.editingFinished.connect(settingsChanged)
   }
+  
   property bool gridEnabled: enableButton.checked
   property color primary: priColor.pixelColor
   property color secondary: secColor.pixelColor

@@ -6,23 +6,21 @@ import QtQuick.Layouts 1.14
 Pane {
   property color pixelColor: color("black")
   
-  GridLayout {
-    columns: 2
-    Rectangle {
-      id: colorLabel
+  Button {
+    Layout.alignment: Qt.AlignTop | Qt.AlignLeft
+    Layout.margins: 0
+    id: changeButton
+    text: ""
+    width: 25
+    height: 25
+    background: Rectangle {
       color: pixelColor
-      width: 100
-      height: 30
       border.color: "white"
+      border.width: 1
     }
-    Button {
-      id: changeButton
-      text: "Change"
-      width: 100
-      height: 30
-      onClicked: {
-         colorChooser.open()
-      }
+    onClicked: {
+      colorChooser.currentColor = pixelColor
+      colorChooser.open()
     }
   }
   ColorDialog {

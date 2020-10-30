@@ -13,9 +13,9 @@ namespace gui_mode
   {
     const unsigned majorVersion{ 1 };
     const unsigned minorVersion{ 0 };
-    const std::string versionString{ std::to_string(majorVersion) + "." + std::to_string(minorVersion) };
     const std::string orgName{ "starturtle" };
     const std::string appName{ "stixelator" };
+    const std::string versionString{ std::to_string(majorVersion) + "." + std::to_string(minorVersion) };
     const std::string appUri{ orgName + "." + appName };
 
     // initialize application

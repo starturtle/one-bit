@@ -3,8 +3,12 @@ import QtQuick.Controls 2.14
 import QtQuick.Layouts 1.14
 
 Pane {
+  Layout.alignment: Qt.AlignTop | Qt.AlignLeft
+  Layout.margins: 1
   width: 400
   GridLayout {
+    rowSpacing: 2
+    columnSpacing: 1
     columns: 2
     Label {
       id: lResWidth
