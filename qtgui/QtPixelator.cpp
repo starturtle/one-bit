@@ -1,6 +1,7 @@
 #include "QtPixelator.h"
 #include "error_codes.h"
 #include "logging.h"
+#include "calculus.h"
 #include <vector>
 #include <set>
 #include <optional>
@@ -12,9 +13,6 @@ namespace
 {
   bool hasDuplicates(const std::vector<QColor>& colors);
   bool allValid(const std::vector<QColor>& colors);
-  unsigned greatest_common_divisor(unsigned a, unsigned b);
-  unsigned least_common_multiple(unsigned a, unsigned b);
-  unsigned least_common_multiple(const std::vector<unsigned>& values);
   QColor minDiff(const QColor& in_source, const std::vector<QColor>& in_list);
 }
  
@@ -40,19 +38,19 @@ errors::Code QtPixelator::run(){
     QImage colorMap = pixelate();
     if (colorMap.isNull())
     {
-      logging::LogStream::instance().getLogStream(logging::Level::ERROR) << "Color map is NULL!" << std::endl;
+      logging::logger() << logging::Level::ERR << "Color map is NULL!" << logging::Level::OFF;
       return errors::PIXELATION_ERROR;
     }
     if (!scalePixels(colorMap))
     {
-      logging::LogStream::instance().getLogStream(logging::Level::ERROR) << "Failed to scale for pixelation" << std::endl;
+      logging::logger() << logging::Level::ERR << "Failed to scale for pixelation" << logging::Level::OFF;
       return errors::PAINT_ERROR;
     }
     drawHelpers();
   }
   else
   {
-    logging::LogStream::instance().getLogStream(logging::Level::ERROR) << "Failed to verify input: " << result << std::endl;
+    logging::logger() << logging::Level::ERR << "Failed to verify input: " << result << logging::Level::OFF;
   }
   pixelationCreated();
   return errors::NONE;
@@ -62,31 +60,31 @@ errors::Code QtPixelator::commit()
 {
   if (storagePath.isEmpty())
   {
-    logging::LogStream::instance().getLogStream(logging::Level::ERROR) << "No output path set!" << std::endl;
+    logging::logger() << logging::Level::ERR << "No output path set!" << logging::Level::OFF;
     return errors::WRONG_OUTPUT_FILE;
   }
   
   if (resultBuffer.save(storagePath.toLocalFile()))
   {
-    logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "File written" << std::endl;
+    logging::logger() << logging::Level::DEBUG << "File written" << logging::Level::OFF;
     return errors::NONE;
   }
 
-  logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "Could not write result" << std::endl;
+  logging::logger() << logging::Level::ERR << "Could not write result" << logging::Level::OFF;
   return errors::WRITE_ERROR;
 }
 
 errors::Code QtPixelator::setInputImage(const QImage& in_image)
 {
   const std::string input{ in_image.isNull() ? " to NULL" : "" };
-  logging::LogStream::instance().getLogStream(logging::Level::ERROR) << "Setting input file" << input << std::endl;
+  logging::logger() << logging::Level::ERR << "Setting input file" << input << logging::Level::OFF;
   imageBuffer = in_image;
   return imageBuffer.isNull() ? errors::WRONG_INPUT_FILE : errors::NONE;
 }
 
 errors::Code QtPixelator::setStoragePath(const QUrl& in_url)
 {
-  logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "Store to " << in_url.toLocalFile().toStdString() << " on completion." << std::endl;
+  logging::logger() << logging::Level::DEBUG << "Store to " << in_url.toLocalFile().toStdString() << " on completion." << logging::Level::OFF;
   
   storagePath = in_url;
   return storagePath.isEmpty() ? errors::WRONG_OUTPUT_FILE : errors::NONE;
@@ -96,12 +94,12 @@ errors::Code QtPixelator::setStitchSizes(const int& in_width, const int& in_heig
 {
   if (in_width <= 0 || in_height <= 0 || in_rowsPerGauge <= 0 || in_stitchesPerGauge <= 0)
   {
-    logging::LogStream::instance().getLogStream(logging::Level::ERROR) << "Bad input " << in_width << "x" << in_height << "cm with " << in_stitchesPerGauge << "st, " << in_rowsPerGauge << "r per 10x10cm" << std::endl;
+    logging::logger() << logging::Level::ERR << "Bad input " << in_width << "x" << in_height << "cm with " << in_stitchesPerGauge << "st, " << in_rowsPerGauge << "r per 10x10cm" << logging::Level::OFF;
     return errors::INVALID_IMAGE_SIZES;
   }
-  logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "Result will have " << in_width << "x" << in_height << "cm with " << in_stitchesPerGauge << "st, " << in_rowsPerGauge << "r per 10x10cm" << std::endl;
+  logging::logger() << logging::Level::DEBUG << "Result will have " << in_width << "x" << in_height << "cm with " << in_stitchesPerGauge << "st, " << in_rowsPerGauge << "r per 10x10cm" << logging::Level::OFF;
   recomputeSizes(in_width, in_height, in_rowsPerGauge, in_stitchesPerGauge);
-  logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "Result will have " << stitchCount << "st, " << rowCount << "r, stixels will measure " << stitchWidth << "x" << stitchHeight << " each" << std::endl;
+  logging::logger() << logging::Level::DEBUG << "Result will have " << stitchCount << "st, " << rowCount << "r, stixels will measure " << stitchWidth << "x" << stitchHeight << " each" << logging::Level::OFF;
 
   return errors::NONE;
 }
@@ -112,7 +110,7 @@ errors::Code QtPixelator::setStitchColors(const std::vector<QColor> in_colors)
   colors = { in_colors };
   if (! allValid(in_colors)) return errors::INVALID_COLOR;
   if (hasDuplicates(in_colors)) return errors::DUPLICATE_COLOR;
-  logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "Set stitch colors" << std::endl;
+  logging::logger() << logging::Level::DEBUG << "Set stitch colors" << logging::Level::OFF;
   return errors::NONE;
 }
 
@@ -139,7 +137,7 @@ void QtPixelator::recomputeSizes(const int& in_width, const int& in_height, cons
   // the total size in stixels is therefore the number of stixels (as computed from the first equation) times the correspoding stixel size.
   stitchCount = (unsigned)(ceil((in_width / 10.) * in_stitchesPerGauge));
   rowCount = (unsigned)(ceil((in_height / 10.) * in_rowsPerGauge));
-  unsigned stixelLcm{ least_common_multiple(in_rowsPerGauge, in_stitchesPerGauge) };
+  unsigned stixelLcm{ calculus::least_common_multiple(in_rowsPerGauge, in_stitchesPerGauge) };
   stitchWidth = stixelLcm / in_stitchesPerGauge;
   stitchHeight = stixelLcm / in_rowsPerGauge;
 } 
@@ -155,10 +153,10 @@ QImage QtPixelator::pixelate()
       auto nearestColor = minDiff(QColor(colorForPixel), colors);
       colorForPixel = nearestColor.isValid() ? nearestColor.rgb() : Qt::black;
     }
-    logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "x";
+    logging::logger() << logging::Level::DEBUG << "x";
   }
-  logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << std::endl;
-  logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "Get pixelation template of size " << colorMap.width() << "x" << colorMap.height() << std::endl;
+  logging::logger() << logging::Level::OFF;
+  logging::logger() << logging::Level::DEBUG << "Get pixelation template of size " << colorMap.width() << "x" << colorMap.height() << logging::Level::OFF;
   return colorMap;
 }
 
@@ -174,13 +172,13 @@ bool QtPixelator::scalePixels(const QImage& colorMap)
       qPainter.setPen(gridEnabled ? auxColorSec : stixelColor);
       qPainter.setBrush(stixelColor);
       qPainter.drawRect(x * stitchWidth, y * stitchHeight, stitchWidth, stitchHeight);
-      logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "Draw sec from " << x << "/" << y << " with dimensions " << stitchWidth << "x" << stitchHeight << std::endl;
+      logging::logger() << logging::Level::DEBUG << "Draw sec from " << x << "/" << y << " with dimensions " << stitchWidth << "x" << stitchHeight << logging::Level::OFF;
     }
-    logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "x";
+    logging::logger() << logging::Level::DEBUG << "x";
   }
-  logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << std::endl;
+  logging::logger() << logging::Level::DEBUG << logging::Level::OFF;
   qPainter.end();
-  logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "Pixelation complete"<< std::endl;
+  logging::logger() << logging::Level::DEBUG << "Pixelation complete" << logging::Level::OFF;
   return true;
 }
 
@@ -203,7 +201,7 @@ void QtPixelator::drawHelpers()
     for (unsigned y = 0; y < (unsigned)resultBuffer.height(); y += primaryGridHeight)
     {
       qPainter.drawRect(x, y, primaryGridWidth, primaryGridHeight);
-      logging::LogStream::instance().getLogStream(logging::Level::DEBUG) << "Draw pri from " << x << "/" << y << " with dimensions " << primaryGridWidth << "x" << primaryGridHeight << std::endl;
+      logging::logger() << logging::Level::DEBUG << "Draw pri from " << x << "/" << y << " with dimensions " << primaryGridWidth << "x" << primaryGridHeight << logging::Level::OFF;
     }
   }
   qPainter.drawLine(0, resultBuffer.height() - 1, resultBuffer.width() - 1, resultBuffer.height() - 1);
@@ -241,128 +239,6 @@ namespace
   {
     return std::any_of(colors.begin(), colors.end(), [](const QColor& color) {return color.isValid(); });
   }
-
-  std::optional<unsigned> divides(unsigned number, unsigned divisor)
-  {
-    if (number == 0 || divisor == 0)
-    {
-      return 0;
-    }
-    unsigned result = number / divisor;
-    if (result * divisor == number)
-    {
-      return result;
-    }
-    return std::optional<unsigned>{};
-  }
-  
-  std::set<unsigned> divisors(unsigned x)
-  {
-    std::set<unsigned> divisors;
-    for (unsigned factor = 1; factor <= sqrt(x); ++factor)
-    {
-      auto result = divides(x, factor);
-      if (result.has_value())
-      {
-        divisors.insert(factor);
-        divisors.insert(result.value());
-      }
-    }
-    return divisors;
-  }
-
-  unsigned search_greatest_common_divisor(unsigned smallerValue, unsigned largerValue)
-  {
-    auto divisors_smaller = divisors(smallerValue);
-    auto divisors_larger = divisors(largerValue);
-
-    if (divisors_smaller.empty())
-    {
-      return 0;
-    }
-
-    for (auto divisor = divisors_smaller.rbegin(); divisor != divisors_smaller.rend(); ++divisor)
-    {
-      if (std::find(divisors_larger.begin(), divisors_larger.end(), *divisor) != divisors_larger.end())
-      {
-        return *divisor;
-      }
-    }
-    return 1;
-  }
-
-  unsigned greatest_common_divisor(unsigned a, unsigned b)
-  {
-    if (a == b)
-    {
-      return a;
-    }
-    if (a < b)
-    {
-      if (divides(b, a).has_value())
-      {
-        return a;
-      }
-      return search_greatest_common_divisor(a, b);
-    }
-    else
-    {
-      if (divides(a, b).has_value())
-      {
-        return b;
-      }
-      return search_greatest_common_divisor(b, a);
-    }
-  }
-
-  unsigned least_common_multiple(unsigned a, unsigned b)
-  {
-    if (a == 0 || b == 0)
-    {
-      return 0;
-    }
-    if (divides(b, a).has_value())
-    {
-      return b;
-    }
-    if (divides(a, b).has_value())
-    {
-      return a;
-    }
-    unsigned gcd = greatest_common_divisor(a, b);
-    return a * b / gcd;//gcd * (a / gcd) * (b / gcd);
-  }
-
-  unsigned least_common_multiple(const std::vector<unsigned>& values)
-  {
-    if (values.size() < 3)
-    {
-      // break condition for recursion
-      if (values.empty())
-      {
-        return 0;
-      }
-      if (1 == values.size())
-      {
-        return values[0];
-      }
-      return least_common_multiple(values[0], values[1]);
-    }
-
-    // recursive call
-    std::vector<unsigned> next;
-    unsigned oneValue = 0;
-    for (auto i = 0; i < values.size()/2; ++i)
-    {
-      next.push_back(least_common_multiple(values[2*i], values[2*i + 1]));
-    }
-    if (values.size() % 2 > 0)
-    {
-      next.push_back(values.back());
-    }
-    return least_common_multiple(next);
-  }
-
   static const double pi{ std::atan(1) * 4 };
 
   struct HsvPoint
@@ -410,7 +286,7 @@ namespace
     return returnValue;
   }
 }
-
+#ifdef DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest.h>
 #include <iomanip>
 #include <sstream>
@@ -431,141 +307,6 @@ TEST_CASE("test hasDuplicates") {
 
   colors[3] = QColorConstants::Svg::red;
   CHECK(hasDuplicates(colors));
-}
-
-TEST_CASE("test divides") {
-  auto result = divides(25, 3);
-  CHECK(! result.has_value());
-
-  result = divides(24, 3);
-  CHECK(result.has_value());
-  CHECK_EQ(result.value(), 8);
-
-  result = divides(3, 3);
-  CHECK(result.has_value());
-  CHECK_EQ(result.value(), 1);
-
-  result = divides(16, 4);
-  CHECK(result.has_value());
-  CHECK_EQ(result.value(), 4);
-
-  result = divides(0, 2);
-  CHECK(result.has_value());
-  CHECK_EQ(result.value(), 0);
-
-  result = divides(5, 0);
-  CHECK(result.has_value());
-  CHECK_EQ(result.value(), 0);
-
-  result = divides(0, 0);
-  CHECK(result.has_value());
-  CHECK_EQ(result.value(), 0);
-
-  result = divides(1953125, 16777216);
-  CHECK(! result.has_value());
-}
-
-TEST_CASE("test divisors") {
-  std::set<unsigned> result;
-  
-  result = divisors(5);
-  CHECK_EQ(result.size(), 2);
-  CHECK_NE(result.find(1), result.end());
-  CHECK_NE(result.find(5), result.end());
-
-  result = divisors(16);
-  CHECK_EQ(result.size(), 5);
-  CHECK_NE(result.find(1), result.end());
-  CHECK_NE(result.find(2), result.end());
-  CHECK_NE(result.find(4), result.end());
-  CHECK_NE(result.find(8), result.end());
-  CHECK_NE(result.find(16), result.end());
-
-  result = divisors(24);
-  CHECK_EQ(result.size(), 8);
-  CHECK_NE(result.find(1), result.end());
-  CHECK_NE(result.find(2), result.end());
-  CHECK_NE(result.find(3), result.end());
-  CHECK_NE(result.find(4), result.end());
-  CHECK_NE(result.find(6), result.end());
-  CHECK_NE(result.find(8), result.end());
-  CHECK_NE(result.find(12), result.end());
-  CHECK_NE(result.find(24), result.end());
-
-  result = divisors(36);
-  CHECK_EQ(result.size(), 9);
-  CHECK_NE(result.find(1), result.end());
-  CHECK_NE(result.find(2), result.end());
-  CHECK_NE(result.find(3), result.end());
-  CHECK_NE(result.find(4), result.end());
-  CHECK_NE(result.find(6), result.end());
-  CHECK_NE(result.find(9), result.end());
-  CHECK_NE(result.find(12), result.end());
-  CHECK_NE(result.find(18), result.end());
-  CHECK_NE(result.find(36), result.end());
-
-  result = divisors(8192); // 2^13
-  CHECK_EQ(result.size(), 14);
-  unsigned factorInlist = 1;
-  for (auto i = 0; i < 14; ++i)
-  {
-    CHECK_NE(result.find(factorInlist), result.end());
-    factorInlist *= 2;
-  }
-
-  result = divisors(262144); // 2^18
-  CHECK_EQ(result.size(), 19);
-  factorInlist = 1;
-  for (auto i = 0; i < 19; ++i)
-  {
-    CHECK_NE(result.find(factorInlist), result.end());
-    factorInlist *= 2;
-  }
-}
-
-TEST_CASE("test search_greatest_common_divisor") {
-  CHECK_EQ(search_greatest_common_divisor(5, 3), 1);
-  CHECK_EQ(search_greatest_common_divisor(59049, 262144), 1);
-  CHECK_EQ(search_greatest_common_divisor(1024, 262144), 1024);
-  CHECK_EQ(search_greatest_common_divisor(24, 36), 12);
-  CHECK_EQ(search_greatest_common_divisor(0, 36), 0);
-}
-
-TEST_CASE("test greatest_common_divisor") {
-  CHECK_EQ(greatest_common_divisor(5, 3), 1);
-  CHECK_EQ(greatest_common_divisor(262144, 59049), 1);
-  CHECK_EQ(greatest_common_divisor(262144, 1024), 1024);
-  CHECK_EQ(greatest_common_divisor(1024, 262144), 1024);
-  CHECK_EQ(greatest_common_divisor(36, 24), 12);
-  CHECK_EQ(greatest_common_divisor(36, 0), 0);
-}
-
-TEST_CASE("test pair-based least_common_multiple") {
-  CHECK_EQ(least_common_multiple(16, 8), 16);
-  CHECK_EQ(least_common_multiple(8, 16), 16);
-  CHECK_EQ(least_common_multiple(16, 18), 144);
-  CHECK_EQ(least_common_multiple(1, 15), 15);
-  CHECK_EQ(least_common_multiple(36, 24), 72);
-  CHECK_EQ(least_common_multiple(243, 1024), 243 * 1024); // power of 3 and power of 2 don't share factors
-
-  CHECK_EQ(least_common_multiple(0, 18), 0);
-  CHECK_EQ(least_common_multiple(18, 0), 0);
-  CHECK_EQ(least_common_multiple(0, 0), 0);
-}
-
-TEST_CASE("test vector-based least_common_multiple")
-{
-  CHECK_EQ(least_common_multiple({ 16, 8 }), 16);
-  CHECK_EQ(least_common_multiple({ 8, 16 }), 16);
-  CHECK_EQ(least_common_multiple({ 12, 16, 18 }), 144);
-  CHECK_EQ(least_common_multiple({ 1, 15 }), 15);
-  CHECK_EQ(least_common_multiple({ 36, 24, 9 }), 72);
-  CHECK_EQ(least_common_multiple({ 243, 1024 }), 243 * 1024); // don't share factors
-  CHECK_EQ(least_common_multiple({ 125, 243, 1024 }), 125 * 243 * 1024); // don't share factors
-
-  CHECK_EQ(least_common_multiple({ 0, 18, 9 }), 0);
-  CHECK_EQ(least_common_multiple({ 18, 0 }), 0);
-  CHECK_EQ(least_common_multiple({ 0, 0 }), 0);
 }
 
 const std::string qcolorToHexString(const QColor& in_color)
@@ -650,3 +391,4 @@ TEST_CASE("test minimum difference finder")
     CHECK_EQ(targetColor, out_color);
   }
 }
+#endif

@@ -7,11 +7,11 @@ namespace script_mode
 {
 int run_as_script(const one_bit::ArgumentParser& in_params)
 {
-  logging::LogStream::instance().setLogLevel(logging::Level::WARNING);
+  logging::logger().setLogLevel(logging::Level::WARNING);
   if ((in_params.has_width() != in_params.has_height()) || (! in_params.has_input_file()) || (! in_params.has_output_file()))
   {
-    logging::LogStream::instance().getLogStream(logging::Level::ERROR) << "Usage: one-bit [-gui=\"true|false\"] [-infile=<infile>] [-outfile=<outfile>] [-rows=<rows> -cols=<cols>]" << std::endl;
-    logging::LogStream::instance().getLogStream(logging::Level::ERROR) << "  Note: infile and outfile are only optional if gui is true!" << std::endl;
+    logging::logger() << logging::Level::ERR << "Usage: one-bit [-gui=\"true|false\"] [-infile=<infile>] [-outfile=<outfile>] [-rows=<rows> -cols=<cols>]" << logging::Level::OFF;
+    logging::logger() << logging::Level::ERR << "  Note: infile and outfile are only optional if gui is true!" << logging::Level::OFF;
     return errors::PARSE_FAILED;
   }
 
@@ -20,27 +20,27 @@ int run_as_script(const one_bit::ArgumentParser& in_params)
   pixelator.display("Before");
   if (pixelator.empty())
   {
-    logging::LogStream::instance().getLogStream(logging::Level::ERROR) << "Input file [" << in_params.get_input_file() << "] is empty!" << std::endl;
+    logging::logger() << logging::Level::ERR << "Input file [" << in_params.get_input_file() << "] is empty!" << logging::Level::OFF;
     return errors::WRONG_INPUT_FILE;
   }
   
-  logging::LogStream::instance().getLogStream(logging::Level::INFO) << pixelator.imageStats() << std::endl;
+  logging::logger() << logging::Level::NOTE << pixelator.imageStats() << logging::Level::OFF;
 
   // convert to binary image
   if (!pixelator.prepare())
   {
-    logging::LogStream::instance().getLogStream(logging::Level::ERROR) << "Failed to prepare!" << std::endl;
+    logging::logger() << logging::Level::ERR << "Failed to prepare!" << logging::Level::OFF;
     return errors::PREPARATION_ERROR;
   }
   if (!pixelator.to_pixels(in_params.get_width(), in_params.get_height(), in_params.get_gauge_stitches(), in_params.get_gauge_rows(), in_params.get_crop_region()))
   {
-    logging::LogStream::instance().getLogStream(logging::Level::ERROR) << "Failed to pixelate!" << std::endl;
+    logging::logger() << logging::Level::ERR << "Failed to pixelate!" << logging::Level::OFF;
     return errors::PIXELATION_ERROR;
   }
   pixelator.display("After");
   if (!pixelator.to_file(in_params.get_output_file()))
   {
-    logging::LogStream::instance().getLogStream(logging::Level::ERROR) << "Failed to pixelate!" << std::endl;
+    logging::logger() << logging::Level::ERR << "Failed to pixelate!" << logging::Level::OFF;
     return errors::PRINT_ERROR;
   }
   return 0;

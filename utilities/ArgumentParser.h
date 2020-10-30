@@ -6,6 +6,7 @@
 #include "Property.hpp"
 #include "setting_enums.h"
 
+#ifdef DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 namespace one_bit
 {
   class ArgumentParser;
@@ -19,12 +20,13 @@ public:
   one_bit::UiMode getUiMode(const std::string& stringToParse, one_bit::ArgumentParser& argParser);
   one_bit::CropRegion getCropRegion(const std::string& stringToParse, one_bit::ArgumentParser& argParser);
 };
+#endif
 using string = std::string;
 namespace one_bit
 {
 class ArgumentParser
 {
-#ifndef DOCTEST_CONFIG_DISABLE
+#ifdef DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
   friend class DoctestArgumentParser;
 #endif
   OPTIONAL_PROPERTY(int, height)

@@ -18,7 +18,7 @@ namespace imaging
   }
   bool Pixelator::prepare()
   {
-    add_color(PixelValue(255, 255, 255));
+    add_color(PixelValue(0, 0, 255));
     add_color(PixelValue());
     return true;
   }
@@ -120,7 +120,7 @@ namespace
     return std::sqrt(std::pow(p1.rc - p2.rc, 2) + std::pow(p1.pl - p2.pl, 2) + std::pow(p1.v - p2.v, 2));
   }
 }
-#ifndef IGNORE_BASE_CLASS_TESTS
+#if defined(DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN) && (! defined(IGNORE_BASE_CLASS_TESTS))
 #include <doctest.h>
 
 class ColorTestPixelator : public imaging::Pixelator
