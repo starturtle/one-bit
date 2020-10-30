@@ -11,6 +11,7 @@ add_library( utilities
 )
 
 if(DOCTEST_INCLUDE_DIR)
+  message(STATUS "build utility tests")
   add_executable( test_argparser ArgumentParser.cpp )
   target_include_directories( test_argparser PUBLIC ${CMAKE_SOURCE_DIR}/utilities "${DOCTEST_INCLUDE_DIR}" )
   target_link_libraries( test_argparser PUBLIC utilities )
@@ -23,5 +24,6 @@ if(DOCTEST_INCLUDE_DIR)
   
   add_executable( test_logging logging.cpp )
   target_include_directories( test_logging PUBLIC ${CMAKE_SOURCE_DIR}/utilities "${DOCTEST_INCLUDE_DIR}" )
+  target_link_libraries( test_logging PUBLIC utilities )
   target_compile_definitions( test_logging PRIVATE -DDOCTEST_CONFIG_IMPLEMENT_WITH_MAIN )
 endif()
