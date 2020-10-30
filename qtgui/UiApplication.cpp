@@ -20,7 +20,7 @@ namespace gui_mode
 
     // initialize application
     logging::logger().setLogLevel(logging::Level::DEBUG);
-    QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 
     QGuiApplication uiApp(argc, argv);
     uiApp.setOrganizationName(orgName.c_str());

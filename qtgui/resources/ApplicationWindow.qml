@@ -13,18 +13,21 @@ ApplicationWindow {
   menuBar: MenuBar {
     MenuBarItem {
       text: qsTr("&Open...")
+      icon.name: "document-open"
       onTriggered: {
         imagePreview.getInputFile()
       }
     }
     MenuBarItem {
       text: qsTr("&Save as...")
+      icon.name: "document-save"
       onTriggered: {
         imagePreview.getOutputFile()
       }
     }
     MenuBarItem {
       text: qsTr("&Quit")
+      icon.name: "application-exit"
       onTriggered: Qt.quit();
     }
   }
