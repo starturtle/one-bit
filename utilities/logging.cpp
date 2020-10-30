@@ -159,38 +159,51 @@ public:
   logging::Level minimum() { return getMinimumLogLevel(); }
 };
 
-template<typename T>
-void verify_log_by_type(StringLogStream& testStream, logging::Level logLevel, logging::Level minLevel, bool allowed, T inputOriginal, const std::string& expectedString)
+void verify_props_for_stream(StringLogStream& testStream, logging::Level logLevel, logging::Level minLevel, const std::string& expectedString)
 {
-  const std::string endString{ expectedString.empty() ? "" : expectedString + "\n" };
   CHECK_EQ(minLevel, testStream.minimum());
-  CHECK_EQ(logging::Level::OFF, testStream.current());
-  testStream << logLevel;
-  CHECK_EQ(minLevel, testStream.minimum());
-  CHECK_EQ(allowed ? logLevel : logging::Level::OFF, testStream.current());
-  testStream << inputOriginal;
-  CHECK_EQ(testStream.getText(), expectedString);
-  testStream << logging::Level::OFF;
-  CHECK_EQ(minLevel, testStream.minimum());
-  CHECK_EQ(logging::Level::OFF, testStream.current());
-  CHECK_EQ(testStream.getText(), endString);
-  testStream << inputOriginal;
-  CHECK_EQ(minLevel, testStream.minimum());
-  CHECK_EQ(logging::Level::OFF, testStream.current());
-  CHECK_EQ(testStream.getText(), endString);
-  testStream.clear();
+  CHECK_EQ(logLevel, testStream.current());
+  CHECK_EQ(expectedString, testStream.getText());
 }
 
 template<typename T>
-void verify_log_by_type(StringLogStream& testStream, logging::Level minLevel, T inputOriginal, const std::string& inputAsString, const std::vector<logging::Level>& supported, const std::vector<logging::Level>& unsupported)
+void verify_log_for_level(StringLogStream& testStream, logging::Level logLevel, logging::Level minLevel, bool allowed, T inputOriginal, const std::string& expectedString)
+{
+  // initially no current log level and buffer empty
+  verify_props_for_stream(testStream, logging::Level::OFF, minLevel, std::string());
+
+  // expected outcome of level setting, buffer still empty
+  testStream << logLevel;
+  verify_props_for_stream(testStream, allowed ? logLevel : logging::Level::OFF, minLevel, std::string());
+
+  // enter input: 
+  testStream << inputOriginal;
+  verify_props_for_stream(testStream, allowed ? logLevel : logging::Level::OFF, minLevel, expectedString);
+
+  // end the log message
+  testStream << logging::Level::OFF;
+  const std::string endString{ expectedString.empty() ? "" : expectedString + "\n" };
+  verify_props_for_stream(testStream, logging::Level::OFF, minLevel, endString);
+
+  // after ending the log message, input should get ignored
+  testStream << inputOriginal;
+  verify_props_for_stream(testStream, logging::Level::OFF, minLevel, endString);
+
+  // cleanup
+  testStream.clear();
+  verify_props_for_stream(testStream, logging::Level::OFF, minLevel, std::string());
+}
+
+template<typename T>
+void verify_log_for_level(StringLogStream& testStream, logging::Level minLevel, T inputOriginal, const std::string& inputAsString, const std::vector<logging::Level>& supported, const std::vector<logging::Level>& unsupported)
 {
   for (auto& level : unsupported)
   {
-    verify_log_by_type(testStream, level, minLevel, false, inputOriginal, std::string());
+    verify_log_for_level(testStream, level, minLevel, false, inputOriginal, std::string());
   }
   for (auto& level : supported)
   {
-    verify_log_by_type(testStream, level, minLevel, true, inputOriginal, inputAsString);
+    verify_log_for_level(testStream, level, minLevel, true, inputOriginal, inputAsString);
   }
 }
 
@@ -215,24 +228,24 @@ void test_log_level_logging(logging::Level level_to_test, const std::vector<logg
   }
 
   // supported log levels do all-in-one-go logging for strings
-  verify_log_by_type(testStream, level_to_test, testString, testString, supported, unsupported);
+  verify_log_for_level(testStream, level_to_test, testString, testString, supported, unsupported);
   // supported log levels do all-in-one-go logging for integers
   int testInputInt{ 15 };
-  verify_log_by_type(testStream, level_to_test, testInputInt, std::to_string(testInputInt), supported, unsupported);
+  verify_log_for_level(testStream, level_to_test, testInputInt, std::to_string(testInputInt), supported, unsupported);
 
   // supported log levels do all-in-one-go logging for unsigned
   unsigned testInputUnsigned{ 15 };
-  verify_log_by_type(testStream, level_to_test, testInputUnsigned, std::to_string(testInputUnsigned), supported, unsupported);
+  verify_log_for_level(testStream, level_to_test, testInputUnsigned, std::to_string(testInputUnsigned), supported, unsupported);
 
   // supported log levels do all-in-one-go logging for C-string
   const char* testInputCString = "FunnyString";
-  verify_log_by_type(testStream, level_to_test, testInputCString, std::string(testInputCString), supported, unsupported);
+  verify_log_for_level(testStream, level_to_test, testInputCString, std::string(testInputCString), supported, unsupported);
 
   // supported log levels do all-in-one-go logging for double
   double testInputDouble{ 15.5 };
   std::string testInputString = std::to_string(testInputDouble);
   testInputString.erase(testInputString.find_last_not_of('0') + 1, std::string::npos); // remove trailing zeroes because that's what stringstream does, too
-  verify_log_by_type(testStream, level_to_test, testInputDouble, testInputString, supported, unsupported);
+  verify_log_for_level(testStream, level_to_test, testInputDouble, testInputString, supported, unsupported);
 }
 
 #include <sstream>
