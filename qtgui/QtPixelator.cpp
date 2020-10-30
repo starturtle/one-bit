@@ -38,19 +38,19 @@ errors::Code QtPixelator::run(){
     QImage colorMap = pixelate();
     if (colorMap.isNull())
     {
-      logging::LogStream::instance() << logging::Level::ERR << "Color map is NULL!" << logging::Level::OFF;
+      logging::logger() << logging::Level::ERR << "Color map is NULL!" << logging::Level::OFF;
       return errors::PIXELATION_ERROR;
     }
     if (!scalePixels(colorMap))
     {
-      logging::LogStream::instance() << logging::Level::ERR << "Failed to scale for pixelation" << logging::Level::OFF;
+      logging::logger() << logging::Level::ERR << "Failed to scale for pixelation" << logging::Level::OFF;
       return errors::PAINT_ERROR;
     }
     drawHelpers();
   }
   else
   {
-    logging::LogStream::instance() << logging::Level::ERR << "Failed to verify input: " << result << logging::Level::OFF;
+    logging::logger() << logging::Level::ERR << "Failed to verify input: " << result << logging::Level::OFF;
   }
   pixelationCreated();
   return errors::NONE;
@@ -60,31 +60,31 @@ errors::Code QtPixelator::commit()
 {
   if (storagePath.isEmpty())
   {
-    logging::LogStream::instance() << logging::Level::ERR << "No output path set!" << logging::Level::OFF;
+    logging::logger() << logging::Level::ERR << "No output path set!" << logging::Level::OFF;
     return errors::WRONG_OUTPUT_FILE;
   }
   
   if (resultBuffer.save(storagePath.toLocalFile()))
   {
-    logging::LogStream::instance() << logging::Level::DEBUG << "File written" << logging::Level::OFF;
+    logging::logger() << logging::Level::DEBUG << "File written" << logging::Level::OFF;
     return errors::NONE;
   }
 
-  logging::LogStream::instance() << logging::Level::ERR << "Could not write result" << logging::Level::OFF;
+  logging::logger() << logging::Level::ERR << "Could not write result" << logging::Level::OFF;
   return errors::WRITE_ERROR;
 }
 
 errors::Code QtPixelator::setInputImage(const QImage& in_image)
 {
   const std::string input{ in_image.isNull() ? " to NULL" : "" };
-  logging::LogStream::instance() << logging::Level::ERR << "Setting input file" << input << logging::Level::OFF;
+  logging::logger() << logging::Level::ERR << "Setting input file" << input << logging::Level::OFF;
   imageBuffer = in_image;
   return imageBuffer.isNull() ? errors::WRONG_INPUT_FILE : errors::NONE;
 }
 
 errors::Code QtPixelator::setStoragePath(const QUrl& in_url)
 {
-  logging::LogStream::instance() << logging::Level::DEBUG << "Store to " << in_url.toLocalFile().toStdString() << " on completion." << logging::Level::OFF;
+  logging::logger() << logging::Level::DEBUG << "Store to " << in_url.toLocalFile().toStdString() << " on completion." << logging::Level::OFF;
   
   storagePath = in_url;
   return storagePath.isEmpty() ? errors::WRONG_OUTPUT_FILE : errors::NONE;
@@ -94,12 +94,12 @@ errors::Code QtPixelator::setStitchSizes(const int& in_width, const int& in_heig
 {
   if (in_width <= 0 || in_height <= 0 || in_rowsPerGauge <= 0 || in_stitchesPerGauge <= 0)
   {
-    logging::LogStream::instance() << logging::Level::ERR << "Bad input " << in_width << "x" << in_height << "cm with " << in_stitchesPerGauge << "st, " << in_rowsPerGauge << "r per 10x10cm" << logging::Level::OFF;
+    logging::logger() << logging::Level::ERR << "Bad input " << in_width << "x" << in_height << "cm with " << in_stitchesPerGauge << "st, " << in_rowsPerGauge << "r per 10x10cm" << logging::Level::OFF;
     return errors::INVALID_IMAGE_SIZES;
   }
-  logging::LogStream::instance() << logging::Level::DEBUG << "Result will have " << in_width << "x" << in_height << "cm with " << in_stitchesPerGauge << "st, " << in_rowsPerGauge << "r per 10x10cm" << logging::Level::OFF;
+  logging::logger() << logging::Level::DEBUG << "Result will have " << in_width << "x" << in_height << "cm with " << in_stitchesPerGauge << "st, " << in_rowsPerGauge << "r per 10x10cm" << logging::Level::OFF;
   recomputeSizes(in_width, in_height, in_rowsPerGauge, in_stitchesPerGauge);
-  logging::LogStream::instance() << logging::Level::DEBUG << "Result will have " << stitchCount << "st, " << rowCount << "r, stixels will measure " << stitchWidth << "x" << stitchHeight << " each" << logging::Level::OFF;
+  logging::logger() << logging::Level::DEBUG << "Result will have " << stitchCount << "st, " << rowCount << "r, stixels will measure " << stitchWidth << "x" << stitchHeight << " each" << logging::Level::OFF;
 
   return errors::NONE;
 }
@@ -110,7 +110,7 @@ errors::Code QtPixelator::setStitchColors(const std::vector<QColor> in_colors)
   colors = { in_colors };
   if (! allValid(in_colors)) return errors::INVALID_COLOR;
   if (hasDuplicates(in_colors)) return errors::DUPLICATE_COLOR;
-  logging::LogStream::instance() << logging::Level::DEBUG << "Set stitch colors" << logging::Level::OFF;
+  logging::logger() << logging::Level::DEBUG << "Set stitch colors" << logging::Level::OFF;
   return errors::NONE;
 }
 
@@ -153,10 +153,10 @@ QImage QtPixelator::pixelate()
       auto nearestColor = minDiff(QColor(colorForPixel), colors);
       colorForPixel = nearestColor.isValid() ? nearestColor.rgb() : Qt::black;
     }
-    logging::LogStream::instance() << logging::Level::DEBUG << "x";
+    logging::logger() << logging::Level::DEBUG << "x";
   }
-  logging::LogStream::instance() << logging::Level::OFF;
-  logging::LogStream::instance() << logging::Level::DEBUG << "Get pixelation template of size " << colorMap.width() << "x" << colorMap.height() << logging::Level::OFF;
+  logging::logger() << logging::Level::OFF;
+  logging::logger() << logging::Level::DEBUG << "Get pixelation template of size " << colorMap.width() << "x" << colorMap.height() << logging::Level::OFF;
   return colorMap;
 }
 
@@ -172,13 +172,13 @@ bool QtPixelator::scalePixels(const QImage& colorMap)
       qPainter.setPen(gridEnabled ? auxColorSec : stixelColor);
       qPainter.setBrush(stixelColor);
       qPainter.drawRect(x * stitchWidth, y * stitchHeight, stitchWidth, stitchHeight);
-      logging::LogStream::instance() << logging::Level::DEBUG << "Draw sec from " << x << "/" << y << " with dimensions " << stitchWidth << "x" << stitchHeight << logging::Level::OFF;
+      logging::logger() << logging::Level::DEBUG << "Draw sec from " << x << "/" << y << " with dimensions " << stitchWidth << "x" << stitchHeight << logging::Level::OFF;
     }
-    logging::LogStream::instance() << logging::Level::DEBUG << "x";
+    logging::logger() << logging::Level::DEBUG << "x";
   }
-  logging::LogStream::instance() << logging::Level::DEBUG << logging::Level::OFF;
+  logging::logger() << logging::Level::DEBUG << logging::Level::OFF;
   qPainter.end();
-  logging::LogStream::instance() << logging::Level::DEBUG << "Pixelation complete" << logging::Level::OFF;
+  logging::logger() << logging::Level::DEBUG << "Pixelation complete" << logging::Level::OFF;
   return true;
 }
 
@@ -201,7 +201,7 @@ void QtPixelator::drawHelpers()
     for (unsigned y = 0; y < (unsigned)resultBuffer.height(); y += primaryGridHeight)
     {
       qPainter.drawRect(x, y, primaryGridWidth, primaryGridHeight);
-      logging::LogStream::instance() << logging::Level::DEBUG << "Draw pri from " << x << "/" << y << " with dimensions " << primaryGridWidth << "x" << primaryGridHeight << logging::Level::OFF;
+      logging::logger() << logging::Level::DEBUG << "Draw pri from " << x << "/" << y << " with dimensions " << primaryGridWidth << "x" << primaryGridHeight << logging::Level::OFF;
     }
   }
   qPainter.drawLine(0, resultBuffer.height() - 1, resultBuffer.width() - 1, resultBuffer.height() - 1);

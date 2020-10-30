@@ -28,4 +28,6 @@ namespace logging
     Level m_minLogLevel;
     Level m_currentLogLevel;
   };
+
+  LogStream& logger();
 }

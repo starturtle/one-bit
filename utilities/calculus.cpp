@@ -7,6 +7,7 @@ namespace
   std::optional<unsigned> divides(unsigned number, unsigned divisor);
   std::set<unsigned> divisors(unsigned x);
   unsigned search_greatest_common_divisor(unsigned smallerValue, unsigned largerValue);
+  unsigned least_common_multiple(const std::vector<unsigned>& values);
 }
 
 namespace calculus
@@ -51,36 +52,6 @@ namespace calculus
     }
     unsigned gcd = greatest_common_divisor(a, b);
     return a * b / gcd;//gcd * (a / gcd) * (b / gcd);
-  }
-
-  unsigned least_common_multiple(const std::vector<unsigned>& values)
-  {
-    if (values.size() < 3)
-    {
-      // break condition for recursion
-      if (values.empty())
-      {
-        return 0;
-      }
-      if (1 == values.size())
-      {
-        return values[0];
-      }
-      return least_common_multiple(values[0], values[1]);
-    }
-
-    // recursive call
-    std::vector<unsigned> next;
-    unsigned oneValue = 0;
-    for (auto i = 0; i < values.size() / 2; ++i)
-    {
-      next.push_back(least_common_multiple(values[2 * i], values[2 * i + 1]));
-    }
-    if (values.size() % 2 > 0)
-    {
-      next.push_back(values.back());
-    }
-    return least_common_multiple(next);
   }
 }
 
@@ -132,6 +103,36 @@ namespace
       }
     }
     return 1;
+  }
+
+  unsigned least_common_multiple(const std::vector<unsigned>& values)
+  {
+    if (values.size() < 3)
+    {
+      // break condition for recursion
+      if (values.empty())
+      {
+        return 0;
+      }
+      if (1 == values.size())
+      {
+        return values[0];
+      }
+      return calculus::least_common_multiple(values[0], values[1]);
+    }
+
+    // recursive call
+    std::vector<unsigned> next;
+    unsigned oneValue = 0;
+    for (auto i = 0; i < values.size() / 2; ++i)
+    {
+      next.push_back(calculus::least_common_multiple(values[2 * i], values[2 * i + 1]));
+    }
+    if (values.size() % 2 > 0)
+    {
+      next.push_back(values.back());
+    }
+    return least_common_multiple(next);
   }
 }
 

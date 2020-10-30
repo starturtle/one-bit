@@ -15,20 +15,20 @@ void ResultImage::setData(const QImage& data)
 {
   if (data.isNull())
   {
-    logging::LogStream::instance() << logging::Level::NOTE << "Input Image empty!" << logging::Level::OFF;
+    logging::logger() << logging::Level::NOTE << "Input Image empty!" << logging::Level::OFF;
   }
   else
   {
-    logging::LogStream::instance() << logging::Level::DEBUG << "Setting Result Image" << logging::Level::OFF;
+    logging::logger() << logging::Level::DEBUG << "Setting Result Image" << logging::Level::OFF;
   }
   image = data;
   if (image.isNull())
   {
-    logging::LogStream::instance() << logging::Level::WARNING << "Result Image empty!" << logging::Level::OFF;
+    logging::logger() << logging::Level::WARNING << "Result Image empty!" << logging::Level::OFF;
   }
   else
   {
-    logging::LogStream::instance() << logging::Level::DEBUG << "Set Result Image" << logging::Level::OFF;
+    logging::logger() << logging::Level::DEBUG << "Set Result Image" << logging::Level::OFF;
   }
   update();
 }

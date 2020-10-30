@@ -12,7 +12,7 @@ namespace gui_mode
   int run_as_window(int argc, char* argv[], const one_bit::ArgumentParser& in_params)
   {
     // initialize application
-    logging::LogStream::instance().setLogLevel(logging::Level::DEBUG);
+    logging::logger().setLogLevel(logging::Level::DEBUG);
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 
     QGuiApplication uiApp(argc, argv);
@@ -42,7 +42,7 @@ namespace gui_mode
       return errors::QT_ERROR;
     }
 
-    logging::LogStream::instance() << logging::Level::DEBUG << "UI App set up!" << logging::Level::OFF;
+    logging::logger() << logging::Level::DEBUG << "UI App set up!" << logging::Level::OFF;
 
     // connect to application engine
     QQmlApplicationEngine engine;
@@ -53,7 +53,7 @@ namespace gui_mode
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
       &uiApp, failureSlot, Qt::QueuedConnection);
     engine.load(url);
-    logging::LogStream::instance() << logging::Level::DEBUG << "UI engine connected!" << logging::Level::OFF;
+    logging::logger() << logging::Level::DEBUG << "UI engine connected!" << logging::Level::OFF;
 
     return uiApp.exec();
   }

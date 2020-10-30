@@ -10,7 +10,7 @@ add_library( utilities
   calculus.cpp
 )
 
-if(${BUILD_TESTING})
+if(DOCTEST_INCLUDE_DIR)
   add_executable( test_argparser ArgumentParser.cpp )
   target_include_directories( test_argparser PUBLIC ${CMAKE_SOURCE_DIR}/utilities "${DOCTEST_INCLUDE_DIR}" )
   target_link_libraries( test_argparser PUBLIC utilities )

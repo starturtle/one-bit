@@ -15,7 +15,7 @@ add_library( imaging
 target_include_directories( imaging PUBLIC ${OpenCV_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/utilities )
 target_link_libraries( imaging PUBLIC ${OpenCV_LIBS} pixelator)
 
-if(${BUILD_TESTING})
+if(DOCTEST_INCLUDE_DIR)
   add_executable( test_pixelator Pixelator.cpp )
   target_include_directories( test_pixelator PUBLIC ${OpenCV_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/utilities "${DOCTEST_INCLUDE_DIR}" )
   target_link_libraries( test_pixelator PUBLIC ${OpenCV_LIBS} )
