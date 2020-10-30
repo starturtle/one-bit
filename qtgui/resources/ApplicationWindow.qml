@@ -11,24 +11,21 @@ ApplicationWindow {
   title: qsTr("Image Pixelation")
 
   menuBar: MenuBar {
-    Menu {
-      title: qsTr("File")
-      MenuItem {
-        text: qsTr("&Load")
-        onTriggered: {
-          imagePreview.getInputFile()
-        }
+    MenuBarItem {
+      text: qsTr("&Open...")
+      onTriggered: {
+        imagePreview.getInputFile()
       }
-      MenuItem {
-        text: qsTr("&Save as...")
-        onTriggered: {
-          imagePreview.getOutputFile()
-        }
+    }
+    MenuBarItem {
+      text: qsTr("&Save as...")
+      onTriggered: {
+        imagePreview.getOutputFile()
       }
-      MenuItem {
-        text: qsTr("Exit")
-        onTriggered: Qt.quit();
-      }
+    }
+    MenuBarItem {
+      text: qsTr("&Quit")
+      onTriggered: Qt.quit();
     }
   }
 
