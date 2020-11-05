@@ -1,0 +1,18 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+  <qresource>
+    <file>qml/InputFileChooser.qml</file>
+    <file>qml/ApplicationWindow.qml</file>
+    <file>qml/PixelSizes.qml</file>
+    <file>qml/PixelColors.qml</file>
+    <file>qml/PixelColorSettings.qml</file>
+    <file>qml/GridLines.qml</file>
+    <file>qml/FileDisplay.qml</file>
+    
+    <file>image/base_stixel.png</file>
+    <file>image/hoernchen.png</file>
+    <file>image/schneider_wibbel.jpg</file>
+    
+    <file>qtquickcontrols2.conf</file>
+  </qresource>
+</RCC>

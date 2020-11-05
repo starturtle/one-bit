@@ -159,18 +159,26 @@ public:
   logging::Level minimum() { return getMinimumLogLevel(); }
 };
 
-void verify_props_for_stream(StringLogStream& testStream, logging::Level logLevel, logging::Level minLevel, const std::string& expectedString)
+void verify_props_for_stream(StringLogStream& testStream, logging::Level logLevel, logging::Level minLevel, const std::string& expectedString, bool isPrecondition = false)
 {
-  CHECK_EQ(minLevel, testStream.minimum());
-  CHECK_EQ(logLevel, testStream.current());
-  CHECK_EQ(expectedString, testStream.getText());
+  if (isPrecondition)
+  {
+    REQUIRE_EQ(minLevel, testStream.minimum());
+    REQUIRE_EQ(logLevel, testStream.current());
+    REQUIRE_EQ(expectedString, testStream.getText());
+  }
+  else {
+    CHECK_EQ(minLevel, testStream.minimum());
+    CHECK_EQ(logLevel, testStream.current());
+    CHECK_EQ(expectedString, testStream.getText());
+  }
 }
 
 template<typename T>
 void verify_log_for_level(StringLogStream& testStream, logging::Level logLevel, logging::Level minLevel, bool allowed, T inputOriginal, const std::string& expectedString)
 {
   // initially no current log level and buffer empty
-  verify_props_for_stream(testStream, logging::Level::OFF, minLevel, std::string());
+  verify_props_for_stream(testStream, logging::Level::OFF, minLevel, std::string(), true);
 
   // expected outcome of level setting, buffer still empty
   testStream << logLevel;
@@ -191,7 +199,7 @@ void verify_log_for_level(StringLogStream& testStream, logging::Level logLevel, 
 
   // cleanup
   testStream.clear();
-  verify_props_for_stream(testStream, logging::Level::OFF, minLevel, std::string());
+  verify_props_for_stream(testStream, logging::Level::OFF, minLevel, std::string(), true);
 }
 
 template<typename T>

@@ -4,12 +4,13 @@
 
 #include <algorithm>
 #include <QMouseEvent>
+#include <QPixmap>
 
 namespace
 {
   qreal boundedMin(qreal val1, qreal val2, qreal boundary);
   qreal boundedMax(qreal val1, qreal val2, qreal boundary);
-  void adjustToAspectRatio(const QPointF& topLeft, QPointF& bottomRight, double targetAspectRatio, qreal paintedWidth, qreal paintedHeight);
+  void adjustToAspectRatio(const QPointF& topLeft, QPointF& bottomRight, const double targetAspectRatio, const qreal paintedWidth, const qreal paintedHeight);
   QString pointsToClippingInfo(const QPointF& topLeft, const QPointF& bottomRight);
   void scalePoint(const QPointF& source, QPoint& target, qreal scalingFactor);
 }
@@ -84,11 +85,15 @@ void SourceImage::mouseReleaseEvent(QMouseEvent* theEvent)
 void SourceImage::setPath(const QUrl& data)
 {
   filePath = data;
-  image.load(data.toLocalFile());
+  image.load(filePath.toLocalFile());
   const std::string fileQuality{ image.isNull() ? "empty " : "" };
-  logging::logger() << logging::Level::NOTE << "Loaded a new " << fileQuality << "file" << logging::Level::OFF;
+  logging::logger() << logging::Level::NOTE << "Loaded a new " << fileQuality << "file " << data.toString().toStdString() << logging::Level::OFF;
   topLeft = { 0, 0 };
+#ifdef DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+  QRectF bounds{ 0, 0, 400, 400 };
+#else
   QRectF bounds = boundingRect();
+#endif
   bottomRight = { bounds.width() - 1, bounds.height() - 1 };
   newTopLeft = { -1, -1 };
   newBottomRight = { -1, -1 };
@@ -113,7 +118,11 @@ void SourceImage::setResultHeight(const int& height)
 }
 
 void SourceImage::paint(QPainter* painter) {
+#ifdef DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+  QRectF bounds{ 0, 0, 400, 400 };
+#else
   QRectF bounds = boundingRect();
+#endif
   if (image.isNull())
   {
     painter->fillRect(bounds, Qt::white);
@@ -133,6 +142,7 @@ void SourceImage::paint(QPainter* painter) {
   setHeight(scaled.height());
   setWidth(scaled.width());
   painter->drawImage(center, scaled);
+
   normalizeLocations(scaled.width(), scaled.height());
   painter->setPen(QColor(255, 0, 0));
   painter->drawRect(topLeft.x(), topLeft.y(), bottomRight.x()-topLeft.x(), bottomRight.y()-topLeft.y());
@@ -145,15 +155,23 @@ void SourceImage::paint(QPainter* painter) {
 
 QImage SourceImage::data() const
 {
+#ifdef DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+  QRectF bounds{ 0, 0, 400, 400 };
+#else
   QRectF bounds = boundingRect();
+#endif
   QImage scaled = image.scaledToWidth(bounds.width());
+  logging::logger() << logging::Level::DEBUG << "BoundingBox (" << bounds.x() << ", " << bounds.y() << ")/(" << bounds.width() << ", " << bounds.height() << ")" << logging::Level::OFF;
   if (scaled.height() > bounds.height())
   {
     scaled = image.scaledToHeight(bounds.height());
   }
-  auto returnValue{ scaled.copy(QRectF(topLeft, bottomRight).toRect()) };
-  logging::logger() << logging::Level::DEBUG << "Clipping to (" << clipTopLeft.x() << ", " << clipTopLeft.y() << ")/(" << clipBottomRight.x() << ", " << clipBottomRight.y() << ")" << logging::Level::OFF;
+  const std::string scaledIsValid{ scaled.isNull() ? "empty " : "" };
+  logging::logger() << logging::Level::DEBUG << "Rescaled to " << scaledIsValid << "file with " << scaled.width() << "/" << scaled.height() << " pixels" << logging::Level::OFF;
+  auto returnValue{ scaled.copy(QRectF(topLeft.x(), topLeft.y(), std::min(bottomRight.x() + 1, (qreal)scaled.width()), std::min(bottomRight.y() + 1, (qreal)scaled.height())).toRect()) };
   const std::string outputIsValid{ returnValue.isNull() ? "empty " : "" };
+  logging::logger() << logging::Level::DEBUG << "Actually clipped to " << outputIsValid << "file with " << returnValue.width() << "/" << returnValue.height() << " pixels" << logging::Level::OFF;
+  logging::logger() << logging::Level::DEBUG << "Clipping to (" << clipTopLeft.x() << ", " << clipTopLeft.y() << ")/(" << clipBottomRight.x() + 1 << ", " << clipBottomRight.y() + 1 << ")" << logging::Level::OFF;
   const std::string inputIsValid{ image.isNull() ? "empty " : "" };
   logging::logger() << logging::Level::DEBUG << "Returning " << outputIsValid << "file copied from " << inputIsValid << "input" << logging::Level::OFF;
   return returnValue;
@@ -161,12 +179,12 @@ QImage SourceImage::data() const
 
 int SourceImage::clipWidth() const
 {
-  return clipBottomRight.x() - clipTopLeft.x();
+  return clipBottomRight.x() - clipTopLeft.x() + 1;
 }
 
 int SourceImage::clipHeight() const
 {
-  return clipBottomRight.y() - clipTopLeft.y();
+  return clipBottomRight.y() - clipTopLeft.y() + 1;
 }
 
 int SourceImage::clipX() const
@@ -214,7 +232,7 @@ namespace
     return std::min(std::max(val1, val2), boundary);
   }
 
-  void adjustToAspectRatio(const QPointF& topLeft, QPointF& bottomRight, double targetAspectRatio, qreal paintedWidth, qreal paintedHeight)
+  void adjustToAspectRatio(const QPointF& topLeft, QPointF& bottomRight, const double targetAspectRatio, const qreal paintedWidth, const qreal paintedHeight)
   {
     if (bottomRight.x() >= paintedWidth)
       bottomRight.setX(paintedWidth - 1);
@@ -274,7 +292,7 @@ namespace
   
   QString pointsToClippingInfo(const QPointF& topLeft, const QPointF& bottomRight)
   {
-    return QString("Use " + QString::number(topLeft.x()) + ", " + QString::number(topLeft.y()) + " (w:" + QString::number(bottomRight.x() - topLeft.x()) + ", h:" + QString::number(bottomRight.y() - topLeft.y()) + ")");
+    return QString("Use " + QString::number(topLeft.x()) + ", " + QString::number(topLeft.y()) + " (w:" + QString::number(bottomRight.x() - topLeft.x() + 1) + ", h:" + QString::number(bottomRight.y() - topLeft.y() + 1) + ")");
   }
 
   void scalePoint(const QPointF& source, QPoint& target, qreal scalingFactor)
@@ -282,6 +300,7 @@ namespace
     target.setX(source.x() * scalingFactor);
     target.setY(source.y() * scalingFactor);
   }
+
 }
 
 #ifdef DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
@@ -329,4 +348,52 @@ TEST_CASE("test scalePoint") {
   CHECK_EQ(target.x(), 20);
   CHECK_EQ(target.x(), 20);
 }
+
+void testFileLoad(const QUrl& in_url, SourceImage& inout_imgObject, const QString& in_expected_clipping_info, const QSize& in_expected_size)
+{
+  std::cout << "As url " << in_url.url().toStdString() << std::endl;
+  inout_imgObject.setPath(in_url);
+  std::cout << inout_imgObject.clippingInfo().toStdString() << std::endl;
+  REQUIRE_FALSE(inout_imgObject.data().isNull());
+  std::cout << inout_imgObject.clippingInfo().toStdString() << std::endl;
+  CHECK_EQ(inout_imgObject.clippingInfo(), in_expected_clipping_info);
+  auto actualSize = inout_imgObject.data().size();
+  CHECK_EQ(actualSize.width(), in_expected_size.width());
+  CHECK_EQ(actualSize.height(), in_expected_size.height());
+
+}
+
+TEST_CASE("test initial image load") {
+  SourceImage testImage;
+  logging::logger().setLogLevel(logging::Level::DEBUG);
+  QUrl resourceUrl;
+  resourceUrl.setScheme("file");
+  QSize expectedSize;
+
+  resourceUrl.setPath(TEST_FILE_NAME);  
+  expectedSize.setWidth(400);
+  expectedSize.setHeight(400);
+  testFileLoad(resourceUrl, testImage, QString("Use 0, 0 (w:927, h:927)"), expectedSize);
+  
+  resourceUrl.setPath(TEST_FILE_NAME_2);
+  expectedSize.setWidth(315);
+  expectedSize.setHeight(400);
+  testFileLoad(resourceUrl, testImage, QString("Use 0, 0 (w:390, h:496)"), expectedSize);
+  
+  resourceUrl.setPath(TEST_FILE_NAME_3);
+  expectedSize.setWidth(400);
+  expectedSize.setHeight(225);
+  testFileLoad(resourceUrl, testImage, QString("Use 0, 0 (w:960, h:540)"), expectedSize);
+
+  resourceUrl.setPath(TEST_FILE_NAME_4);
+  expectedSize.setWidth(288);
+  expectedSize.setHeight(400);
+  testFileLoad(resourceUrl, testImage, QString("Use 0, 0 (w:708, h:984)"), expectedSize);
+  
+  resourceUrl.setPath(TEST_FILE_NAME_5);
+  expectedSize.setWidth(400);
+  expectedSize.setHeight(400);
+  testFileLoad(resourceUrl, testImage, QString("Use 0, 0 (w:400, h:400)"), expectedSize);
+}
+
 #endif

@@ -53,7 +53,7 @@ namespace gui_mode
 
     // connect to application engine
     QQmlApplicationEngine engine;
-    const QUrl url(QStringLiteral("qrc:/ApplicationWindow.qml"));
+    const QUrl url(QStringLiteral("qrc:/qml/ApplicationWindow.qml"));
     auto failureSlot = [url](QObject* obj, const QUrl& objUrl) {
       if (!obj && url == objUrl) QCoreApplication::exit(int(errors::QT_ERROR));
     };

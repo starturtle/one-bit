@@ -22,7 +22,15 @@ Testing requires [doctest](https://github.com/onqtam/doctest) on your machine. O
 
 Doctest is header only, so it doesn't technically get installed. To use it with this program, provide the config entry DOCTEST_INCLUDE_DIR as the path to your doctest copy (root directory) when configuring the project in CMake.
 
-## Automatic generation
+### Installation Procedure
+
+1. Run CMake, specifying your output folder outside the source tree.
+
+2. Build the generated project "stixelator" according to your environment of choice.
+
+3. Run the stixelator binary.
+
+## Automatic Image Generation
 
 ### Input Data
 The input image must be of JPG or PNG format. Note that for proper pixelation, you need to know the gauge and colors of your yarn and the desired size of the workpiece. 

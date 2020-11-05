@@ -28,9 +28,11 @@ add_subdirectory( utilities )
 if( ${USE_QT5} )
   message(STATUS "build with GUI mode")
   set(CMAKE_AUTOMOC ON)
+  set(CMAKE_AUTORCC ON)
   add_subdirectory( qtgui )
-  qtquick_compiler_add_resources(RESOURCES qtgui/resources/one-bit-resources.qrc)
+  qtquick_compiler_add_resources(RESOURCES qtgui/resources/stixelator-resources.qrc)
 endif()
+
 # executable setup
 add_executable( stixelator main.cpp ${RESOURCES})
 target_link_libraries( stixelator PUBLIC utilities )
