@@ -8,11 +8,6 @@
     <file>qml/PixelColorSettings.qml</file>
     <file>qml/GridLines.qml</file>
     <file>qml/FileDisplay.qml</file>
-    
-    <file>image/base_stixel.png</file>
-    <file>image/hoernchen.png</file>
-    <file>image/schneider_wibbel.jpg</file>
-    
     <file>qtquickcontrols2.conf</file>
   </qresource>
 </RCC>

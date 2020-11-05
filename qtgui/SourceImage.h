@@ -3,9 +3,15 @@
 #include <QQuickItem>
 #include <QPainter>
 #include <QImage>
+#ifdef DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+class SourceImageTester;
+#endif
 
 class SourceImage : public QQuickPaintedItem
 {
+#ifdef DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+  friend class SourceImageTester;
+#endif
   Q_OBJECT
     Q_PROPERTY(QImage imageBuffer READ data NOTIFY dataChanged)
     Q_PROPERTY(QUrl path WRITE setPath NOTIFY pathChanged)
