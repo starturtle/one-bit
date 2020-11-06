@@ -472,6 +472,7 @@ unsigned compareQRgb(const QRgb& value1, const QRgb& value2, uchar maxDifference
 
 struct RangeSelectionTestSet
 {
+  std::string name;
   QPoint topLeft;
   QPoint bottomRight;
   QPoint topLeftOriginal;
@@ -527,16 +528,19 @@ TEST_CASE("test mouse based range selection")
   
   std::vector<RangeSelectionTestSet> movements{
     {
+      "wibbel_topleft.jpg",
       {10, 10},
       {100, 100},
       {23, 23},
       {209, 209},
     },{
+      "wibbel_middle.jpg",
       {150, 150},
       {300, 300},
       {347, 347},
       {349, 349},
     },{
+      "wibbel_bottomright.jpg",
       {250, 250},
       {350, 350},
       {579, 579},
@@ -554,6 +558,8 @@ TEST_CASE("test mouse based range selection")
     // this rectangle, if resized to match the overall image size of 925x925, scales to a 441x441 rectangle starting at pixel 23x23.
     fileSizeCheck(testImage, parameters.toClippingString(), parameters.sizeScaled());
     compareSourceImageData(testImage, tester, parameters);
+    QString outPath(std::string(TEST_DIR_NAME + parameters.name).c_str());
+    testImage.data().save(outPath);
   }
 }
 
