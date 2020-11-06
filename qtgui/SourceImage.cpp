@@ -342,6 +342,8 @@ public:
     QMouseEvent mouseReleased(QEvent::Type::MouseButtonRelease, pos, Qt::MouseButton::LeftButton, (canceled ? Qt::MouseButton::RightButton : Qt::MouseButton::NoButton), Qt::KeyboardModifier::NoModifier);
     m_imageToTest.mouseReleaseEvent(&mouseReleased);
   }
+
+  inline QImage& fullImage() { return m_imageToTest.image; }
 private:
   SourceImage& m_imageToTest;
 };
@@ -443,6 +445,71 @@ TEST_CASE("test initial image load") {
   testFileLoad(resourceUrl, testImage, QString("Use 0, 0 (w:400, h:400)"), expectedSize);
 }
 
+const std::string qrgbToHexString(const QRgb& in_color)
+{
+  std::stringstream formatted{};
+  formatted << "#" << std::setfill('0') << std::hex;
+  for (auto i = 0; i < 4; ++i) {
+    formatted << std::setw(2) << (in_color >> 8*(3-i))%256;
+  }
+  return formatted.str();
+}
+
+unsigned compareQRgb(const QRgb& value1, const QRgb& value2, uchar maxDifference = 10)
+{
+  auto cv1 = value1;
+  auto cv2 = value2;
+  unsigned rv = 0;
+  for (auto i = 0; i < 4; ++i) {
+    uchar byte1 = cv1 % 256;
+    uchar byte2 = cv2 % 256;
+    unsigned diff = std::abs(byte1 - byte2);
+    if (diff > rv) rv = diff;
+  }
+  return rv;
+  //return true;
+}
+
+struct RangeSelectionTestSet
+{
+  QPoint topLeft;
+  QPoint bottomRight;
+  QPoint topLeftOriginal;
+  QSize sizeOriginal;
+  QSize sizeScaled() const { return QSize{ bottomRight.x() - topLeft.x() + 1, bottomRight.y() - topLeft.y() + 1 }; }
+  QString toClippingString() const {
+    return QString("Use " + QString::number(topLeftOriginal.x()) + ", " + QString::number(topLeftOriginal.y()) + " (w:" + QString::number(sizeOriginal.width()) + ", h:" + QString::number(sizeOriginal.height()) + ")");
+  }
+};
+
+void compareSourceImageData(SourceImage& testImage, SourceImageTester& tester, const RangeSelectionTestSet& testArgs)
+{
+  auto testCroppedSection = testImage.data();
+  auto testRectangle = tester.fullImage().copy({ testArgs.topLeftOriginal, testArgs.sizeOriginal }).scaledToWidth(testArgs.bottomRight.x() - testArgs.topLeft.x() + 1);
+  CHECK_EQ(testCroppedSection.width(), testRectangle.width());
+  CHECK_EQ(testCroppedSection.height(), testRectangle.height());
+  std::cout << "The comparison isn't 100% accurate around edges. Compare manually!" << std::endl;
+  std::cout << "The following gives an ASCII art representation of the diff between the two image sections by pixel channel values." << std::endl;
+  unsigned criticalCount = 0;
+  for (int y = 0; y < testCroppedSection.height(); y++) {
+    QRgb* lineToTest = (QRgb*)testCroppedSection.scanLine(y);
+    QRgb* lineToMatch = (QRgb*)testRectangle.scanLine(y);
+    std::cout << "|";
+    for (int x = 0; x < testCroppedSection.width(); x++) {
+      auto frame = compareQRgb(lineToTest[x], lineToMatch[x]);
+      char pixel = ' ';
+      if (frame >= 32) { pixel = 'X'; ++criticalCount; }
+      else if (frame >= 16) pixel = 'x';
+      else if (frame >= 8) pixel = '_';
+      else if (frame >= 4) pixel = '.';
+      std::cout << pixel;
+    }
+    std::cout << "|" << std::endl;
+  }
+  auto size = testArgs.sizeScaled();
+  CHECK_LT(criticalCount, size.width() * size.height() / 50); // less than 1% actually at high contrast by pixel
+}
+
 TEST_CASE("test mouse based range selection")
 {
   SourceImage testImage;
@@ -458,14 +525,36 @@ TEST_CASE("test mouse based range selection")
 
   SourceImageTester tester{ testImage };
   
-  // drag rectangle from 10, 10 to 200, 200 computationally
-  tester.mouseDown({ 10, 10 });
-  for (qreal pos = 20; pos < 200; pos += 10) tester.mouseMoved({ pos, pos });
-  tester.mouseUp({ 200, 200 });
+  std::vector<RangeSelectionTestSet> movements{
+    {
+      {10, 10},
+      {100, 100},
+      {23, 23},
+      {209, 209},
+    },{
+      {150, 150},
+      {300, 300},
+      {347, 347},
+      {349, 349},
+    },{
+      {250, 250},
+      {350, 350},
+      {579, 579},
+      {233, 233},
+    } 
+  };
+  for (auto& parameters : movements)
+  {
+    // drag rectangle from 10, 10 to 100, 100 computationally
+    tester.mouseDown(parameters.topLeft);
+    for (qreal pos = parameters.topLeft.x() + 10; pos < parameters.bottomRight.x(); pos += 10) tester.mouseMoved({ pos, pos });
+    tester.mouseUp(parameters.bottomRight);
 
-  // this mouse action should result in a rectangle with 191x191 displayed pixels starting at 10x10 displayed
-  // this rectangle, if resized to match the overall image size of 925x925, scales to a 441x441 rectangle starting at pixel 23x23.
-  fileSizeCheck(testImage, QString{"Use 23, 23 (w:441, h:441)"}, QSize{191, 191});
+    // this mouse action should result in a rectangle with 191x191 displayed pixels starting at 10x10 displayed
+    // this rectangle, if resized to match the overall image size of 925x925, scales to a 441x441 rectangle starting at pixel 23x23.
+    fileSizeCheck(testImage, parameters.toClippingString(), parameters.sizeScaled());
+    compareSourceImageData(testImage, tester, parameters);
+  }
 }
 
 #endif
