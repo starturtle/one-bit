@@ -30,7 +30,7 @@ namespace
 SourceImage::SourceImage(QQuickItem* parent)
 : QQuickPaintedItem()
 , filePath{}
-, resultSize{1, 1}
+, resultSize{}
 , clipTopLeft{}
 , clipBottomRight{}
 , image{}
@@ -175,7 +175,7 @@ QImage SourceImage::data() const
   logging::logger() << logging::Level::DEBUG << "Rescaled to " << scaledIsValid << "file with " << scaled.width() << "/" << scaled.height() << " pixels" << logging::Level::OFF;
 
   // clip to selected area
-  auto returnValue{ scaled.copy(QRectF(topLeft.x(), topLeft.y(), std::min(bottomRight.x() - topLeft.x() + 1, (qreal)scaled.width()), std::min(bottomRight.y() - topLeft.y() + 1, (qreal)scaled.height())).toRect()) };
+  auto returnValue{ scaled.copy(QRectF(topLeft.x(), topLeft.y(), std::min(1 + bottomRight.x() - topLeft.x(), (qreal)scaled.width()), std::min(1 + bottomRight.y() - topLeft.y(), (qreal)scaled.height())).toRect()) };
   const std::string outputIsValid{ returnValue.isNull() ? "empty " : "" };
   logging::logger() << logging::Level::DEBUG << "Actually clipped to " << outputIsValid << "file with " << returnValue.width() << "/" << returnValue.height() << " pixels" << logging::Level::OFF;
 
@@ -187,12 +187,12 @@ QImage SourceImage::data() const
 
 int SourceImage::clipWidth() const
 {
-  return clipBottomRight.x() - clipTopLeft.x() + 1;
+  return 1 + clipBottomRight.x() - clipTopLeft.x();
 }
 
 int SourceImage::clipHeight() const
 {
-  return clipBottomRight.y() - clipTopLeft.y() + 1;
+  return 1 + clipBottomRight.y() - clipTopLeft.y();
 }
 
 int SourceImage::clipX() const
@@ -217,12 +217,13 @@ QString SourceImage::clippingInfo() const
 void SourceImage::normalizeLocations(qreal paintedWidth, qreal paintedHeight)
 {
   logging::logger() << logging::Level::DEBUG << "Normalizing..." << logging::Level::OFF;
-  double definedAspectRatio = resultSize.y() / resultSize.x();
+  double definedAspectRatio = (resultSize.x() > 0 && resultSize.y() > 0) ? (1. * resultSize.y() / resultSize.x()) : (1. * image.height() / image.width());
 
   adjustToAspectRatio(topLeft, bottomRight, definedAspectRatio, paintedWidth, paintedHeight);
   adjustToAspectRatio(newTopLeft, newBottomRight, definedAspectRatio, paintedWidth, paintedHeight);
 
   qreal scaling{ image.width() / paintedWidth };
+  logging::logger() << logging::Level::DEBUG << "Using scaling between displayed and actual image of " << scaling << " from " << image.width() << "x" << image.height() << " to " << paintedWidth << "x" << paintedHeight << logging::Level::OFF;
   scalePoint(topLeft, clipTopLeft, scaling);
   scalePoint(bottomRight, clipBottomRight, scaling);
   scalePoint(newTopLeft, newClipTopLeft, scaling);
@@ -244,13 +245,15 @@ namespace
 
   void adjustToAspectRatio(const QPointF& topLeft, QPointF& bottomRight, const double targetAspectRatio, const qreal paintedWidth, const qreal paintedHeight)
   {
+    logging::logger() << logging::Level::DEBUG << "Adjusting " << topLeft.x() << "/"<< topLeft.y() << " and " << bottomRight.x() << "/" << bottomRight.y() << " to aspect ratio " << targetAspectRatio << " on canvas " << paintedWidth << "x" << paintedHeight << logging::Level::OFF;
     if (bottomRight.x() >= paintedWidth)
       bottomRight.setX(paintedWidth - 1);
     if (bottomRight.y() >= paintedHeight)
       bottomRight.setY(paintedHeight - 1);
-    double actualHeight = bottomRight.y() - topLeft.y();
-    double actualWidth = bottomRight.x() - topLeft.x();
-    double actualAspectRatio =  actualHeight / actualWidth;
+
+    double actualHeight = 1 + bottomRight.y() - topLeft.y();
+    double actualWidth = 1 + bottomRight.x() - topLeft.x();
+    double actualAspectRatio = actualHeight / actualWidth;
     static const double aspectRatioMaxDelta{ 0.02 };
 
     if (std::abs(targetAspectRatio - actualAspectRatio) < aspectRatioMaxDelta)
@@ -261,7 +264,7 @@ namespace
     // adjust the smaller one
     if (actualWidth > actualHeight)
     {
-      qreal newBottomRightY{ topLeft.y() + actualWidth * targetAspectRatio };
+      qreal newBottomRightY{ topLeft.y() - 1 + actualWidth * targetAspectRatio };
       if (newBottomRightY < paintedHeight)
       {
         bottomRight.setY(newBottomRightY);
@@ -269,13 +272,13 @@ namespace
       else
       {
         bottomRight.setY(paintedHeight - 1);
-        actualHeight = bottomRight.y() - topLeft.y();
-        bottomRight.setX(topLeft.x() + actualHeight / targetAspectRatio);
+        actualHeight = 1 + bottomRight.y() - topLeft.y();
+        bottomRight.setX(topLeft.x() - 1 + actualHeight / targetAspectRatio );
       }
     }
     else if (actualWidth < actualHeight)
     {
-      qreal newBottomRightX{ topLeft.x() + actualHeight / targetAspectRatio };
+      qreal newBottomRightX{ topLeft.x() - 1 + actualHeight / targetAspectRatio };
       if (newBottomRightX < paintedWidth)
       {
         bottomRight.setX(newBottomRightX);
@@ -283,21 +286,22 @@ namespace
       else
       {
         bottomRight.setX(paintedWidth - 1);
-        actualWidth = bottomRight.x() - topLeft.x();
-        bottomRight.setY(topLeft.y() + actualWidth / targetAspectRatio);
+        actualWidth = 1 + bottomRight.x() - topLeft.x();
+        bottomRight.setY(topLeft.y() - 1 + actualWidth / targetAspectRatio);
       }
     }
     else if (targetAspectRatio > 1.)
     {
       // y > x, adjust x.
-      qreal newBottomRightX{ topLeft.x() + actualHeight / targetAspectRatio };
+      qreal newBottomRightX{ topLeft.x() - 1 + actualHeight / targetAspectRatio };
       bottomRight.setX(newBottomRightX);
     }
     else
     {
-      qreal newBottomRightY{ topLeft.y() + actualWidth * targetAspectRatio };
+      qreal newBottomRightY{ topLeft.y() - 1 + actualWidth * targetAspectRatio };
       bottomRight.setY(newBottomRightY);
     }
+    logging::logger() << logging::Level::DEBUG << "Adjusted " << topLeft.x() << "/" << topLeft.y() << " and " << bottomRight.x() << "/" << bottomRight.y() << " to aspect ratio " << targetAspectRatio << " on canvas " << actualWidth << "x" << actualHeight << logging::Level::OFF;
   }
   
   QString pointsToClippingInfo(const QPointF& topLeft, const QPointF& bottomRight)
@@ -358,20 +362,21 @@ TEST_CASE("test adjustToAspectRatio") {
   QPointF bottomRight{200, 250};
   qreal paintedWidth{ 250 };
   qreal paintedHeight{ 250 };
+  const qreal maxDelta{ 1. };
 
   adjustToAspectRatio(topLeft, bottomRight, targetAspectRatio, paintedWidth, paintedHeight);
-  CHECK(std::abs(bottomRight.x() - 249) < 0.1);
-  CHECK(std::abs(bottomRight.y() - 249) < 0.1);
+  CHECK(std::abs(bottomRight.x() - 249.) < maxDelta);
+  CHECK(std::abs(bottomRight.y() - 249.) < maxDelta);
 
   targetAspectRatio = .8;
   adjustToAspectRatio(topLeft, bottomRight, targetAspectRatio, paintedWidth, paintedHeight);
-  CHECK(std::abs(bottomRight.x() - 249) < 0.1);
-  CHECK(std::abs(bottomRight.y() - 199.2) < 0.1);
+  CHECK(std::abs(bottomRight.x() - 249.) < maxDelta);
+  CHECK(std::abs(bottomRight.y() - 199.2) < maxDelta);
 
   targetAspectRatio = 2.;
   adjustToAspectRatio(topLeft, bottomRight, targetAspectRatio, paintedWidth, paintedHeight);
-  CHECK(std::abs(bottomRight.x() - 124.5) < 0.1);
-  CHECK(std::abs(bottomRight.y() - 249) < 0.1);
+  CHECK(std::abs(bottomRight.x() - 124.5) < maxDelta);
+  CHECK(std::abs(bottomRight.y() - 249.) < maxDelta);
 }
 
 TEST_CASE("test scalePoint") {
@@ -411,26 +416,26 @@ TEST_CASE("test initial image load") {
   QUrl resourceUrl;
   resourceUrl.setScheme("file");
   QSize expectedSize;
-
+  // NOTE: most image sizes are actually slightly larger, but the clipping settings are performed on the downsized image file, giving an accuracy of about 2.x pixels on the original image per displayed pixel
   resourceUrl.setPath(TEST_FILE_NAME);  
   expectedSize.setWidth(400);
   expectedSize.setHeight(400);
-  testFileLoad(resourceUrl, testImage, QString("Use 0, 0 (w:927, h:927)"), expectedSize);
+  testFileLoad(resourceUrl, testImage, QString("Use 0, 0 (w:925, h:925)"), expectedSize);
   
   resourceUrl.setPath(TEST_FILE_NAME_2);
   expectedSize.setWidth(315);
   expectedSize.setHeight(400);
-  testFileLoad(resourceUrl, testImage, QString("Use 0, 0 (w:390, h:496)"), expectedSize);
+  testFileLoad(resourceUrl, testImage, QString("Use 0, 0 (w:389, h:495)"), expectedSize);
   
   resourceUrl.setPath(TEST_FILE_NAME_3);
   expectedSize.setWidth(400);
   expectedSize.setHeight(225);
-  testFileLoad(resourceUrl, testImage, QString("Use 0, 0 (w:960, h:540)"), expectedSize);
+  testFileLoad(resourceUrl, testImage, QString("Use 0, 0 (w:958, h:538)"), expectedSize);
 
   resourceUrl.setPath(TEST_FILE_NAME_4);
   expectedSize.setWidth(288);
   expectedSize.setHeight(400);
-  testFileLoad(resourceUrl, testImage, QString("Use 0, 0 (w:708, h:984)"), expectedSize);
+  testFileLoad(resourceUrl, testImage, QString("Use 0, 0 (w:706, h:981)"), expectedSize);
   
   resourceUrl.setPath(TEST_FILE_NAME_5);
   expectedSize.setWidth(400);
@@ -459,8 +464,8 @@ TEST_CASE("test mouse based range selection")
   tester.mouseUp({ 200, 200 });
 
   // this mouse action should result in a rectangle with 191x191 displayed pixels starting at 10x10 displayed
-  // this rectangle, if resized to match the overall image size of 927x927, scales to a 442x442 rectangle starting at pixel 23x23.
-  fileSizeCheck(testImage, QString{"Use 23, 23 (w:442, h:442)"}, QSize{191, 191});
+  // this rectangle, if resized to match the overall image size of 925x925, scales to a 441x441 rectangle starting at pixel 23x23.
+  fileSizeCheck(testImage, QString{"Use 23, 23 (w:441, h:441)"}, QSize{191, 191});
 }
 
 #endif
