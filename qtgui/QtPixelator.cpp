@@ -241,6 +241,7 @@ namespace
   }
   static const double pi{ std::atan(1) * 4 };
 
+#ifdef USE_HSV_DISTANCE
   struct HsvPoint
   {
     const double rc;
@@ -269,7 +270,37 @@ namespace
 
     return std::sqrt(std::pow(p1.rc - p2.rc, 2) + std::pow(p1.pl - p2.pl, 2) + std::pow(p1.v - p2.v, 2));
   }
+#endif
 
+  struct YuvPoint
+  {
+    const double y;
+    const double u;
+    const double v;
+
+    static YuvPoint fromColor(const QColor& in_color)
+    {
+      int red, green, blue;
+      in_color.getRgb(&red, &green, &blue);
+      return YuvPoint(red, green, blue);
+    }
+
+    YuvPoint(int red, int green, int blue)
+      : y{ red * 0.299 + green * 0.587 + blue * 0.114 }
+      , u{ 0.436 * blue - 0.147 * red - 0.289 * green }
+      , v{ 0.615 * red - 0.515 * green - 0.1 * blue }
+    {
+    }
+  };
+
+  double colorDistance(const QColor& one, const QColor& other)
+  {
+    YuvPoint p1 = YuvPoint::fromColor(one);
+    YuvPoint p2 = YuvPoint::fromColor(other);
+
+    return std::sqrt(std::pow(p1.y - p2.y, 2) + std::pow(p1.u - p2.u, 2) + std::pow(p1.v - p2.v, 2));
+  }
+  
   QColor minDiff(const QColor& in_source, const std::vector<QColor>& in_list)
   {
     double diff = std::numeric_limits<double>::max();
