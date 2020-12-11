@@ -1,12 +1,12 @@
 #include "QtPixelator.h"
 #include "error_codes.h"
 #include "logging.h"
-#include "calculus.h"
 #include <vector>
 #include <set>
 #include <optional>
 #include <cmath>
 #include <algorithm>
+#include <numeric>
 #include <QPainter>
 
 namespace
@@ -137,7 +137,7 @@ void QtPixelator::recomputeSizes(const int& in_width, const int& in_height, cons
   // the total size in stixels is therefore the number of stixels (as computed from the first equation) times the correspoding stixel size.
   stitchCount = (unsigned)(ceil((in_width / 10.) * in_stitchesPerGauge));
   rowCount = (unsigned)(ceil((in_height / 10.) * in_rowsPerGauge));
-  unsigned stixelLcm{ calculus::least_common_multiple(in_rowsPerGauge, in_stitchesPerGauge) };
+  int stixelLcm{ std::lcm(in_rowsPerGauge, in_stitchesPerGauge) };
   stitchWidth = stixelLcm / in_stitchesPerGauge;
   stitchHeight = stixelLcm / in_rowsPerGauge;
 } 
